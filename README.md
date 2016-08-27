@@ -18,7 +18,7 @@ repositories {
 }
     
 dependencies {
-    compile 'com.github.aviadmini:quickimagepick:1.0.0'
+    compile 'com.github.aviadmini:quickimagepick:1.0.1'
 }
 ```
 
