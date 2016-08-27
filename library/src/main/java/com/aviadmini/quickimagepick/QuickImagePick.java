@@ -177,7 +177,7 @@ public class QuickImagePick {
     }
 
     private static Uri createImageUri(@NonNull final Context pContext, @NonNull final File pFile) {
-        return FileProvider.getUriForFile(pContext, "com.aviadmini.quickimagepick.file_provider", pFile);
+        return FileProvider.getUriForFile(pContext, pContext.getPackageName() + ".qip_file_provider", pFile);
     }
 
     // ==== GALLERY ==== //

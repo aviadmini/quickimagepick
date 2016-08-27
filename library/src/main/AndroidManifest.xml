@@ -11,7 +11,7 @@
 
         <provider
             android:name="android.support.v4.content.FileProvider"
-            android:authorities="com.aviadmini.quickimagepick.file_provider"
+            android:authorities="${applicationId}.qip_file_provider"
             android:exported="false"
             android:grantUriPermissions="true"
             >
