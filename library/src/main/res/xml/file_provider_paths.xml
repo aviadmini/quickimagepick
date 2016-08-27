@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+
+    <!-- Grant permission to all files on external storage-->
+    <external-path
+        name="external_files"
+        path="."
+        />
+
+</paths>
