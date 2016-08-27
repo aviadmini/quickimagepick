@@ -18,7 +18,7 @@ repositories {
 }
     
 dependencies {
-    compile 'com.github.aviadmini:quickimagepick:1.0.1'
+    compile 'com.github.aviadmini:quickimagepick:1.0.2'
 }
 ```
 
@@ -79,10 +79,9 @@ final QuickImagePick.Callback mCallback = new QuickImagePick.Callback() {
 @Override
 protected void onActivityResult(final int pRequestCode, final int pResultCode, final Intent pData) {
 super.onActivityResult(pRequestCode, pResultCode, pData);
-
-    if (!QuickImagePick.handleActivityResult(getApplicationContext(), pRequestCode, pResultCode, pData, this.mCallback)) {
-        super.onActivityResult(pRequestCode, pResultCode, pData);
-    }
+    super.onActivityResult(pRequestCode, pResultCode, pData);
+    
+    QuickImagePick.handleActivityResult(getApplicationContext(), pRequestCode, pResultCode, pData, this.mCallback);
             
 }
 ```

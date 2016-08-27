@@ -584,6 +584,7 @@ public class QuickImagePick {
      * @param pResultCode  result code from {@code onActivityResult(...)} parameter
      * @param pData        Intent from {@code onActivityResult(...)} parameter
      * @param pCallback    result callback
+     * @return true if result was accepted by QuickImagePick
      */
     public static boolean handleActivityResult(@NonNull final Fragment pFragment, final int pRequestCode, final int pResultCode,
                                                @Nullable final Intent pData, @NonNull final Callback pCallback) {
@@ -599,6 +600,7 @@ public class QuickImagePick {
      * @param pResultCode  result code from {@code onActivityResult(...)} parameter
      * @param pData        Intent from {@code onActivityResult(...)} parameter
      * @param pCallback    result callback
+     * @return true if result was accepted by QuickImagePick
      */
     public static boolean handleActivityResult(@NonNull final android.app.Fragment pFragment, final int pRequestCode, final int pResultCode,
                                                @Nullable final Intent pData, @NonNull final Callback pCallback) {
@@ -615,6 +617,7 @@ public class QuickImagePick {
      * @param pResultCode  result code from {@code onActivityResult(...)} parameter
      * @param pData        Intent from {@code onActivityResult(...)} parameter
      * @param pCallback    result callback
+     * @return true if result was accepted by QuickImagePick
      * @see #handleActivityResult(Fragment, int, int, Intent, Callback)
      * @see #handleActivityResult(android.app.Fragment, int, int, Intent, Callback)
      */
