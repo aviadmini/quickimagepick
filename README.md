@@ -18,7 +18,7 @@ repositories {
 }
     
 dependencies {
-    compile 'com.github.aviadmini:quickimagepick:1.0.3'
+    compile 'com.github.aviadmini:quickimagepick:1.0.4'
 }
 ```
 
@@ -35,7 +35,7 @@ dependencies {
 - Use overloads of ```QuickImagePick.pickFromCamera(...)```
 - You can change the directory where pictures are saved by calling `setCameraPicsDirectory(Context pContext, String pDirPath)`, set to `null` to use default (pictures directory on external storage) 
 - **EXTREMELY IMPORTANT: library does not delete the images taken by camera. You must do it yourself after you're done with them to prevent using too much storage space** 
-- Default settings don't need `WRITE_EXTERNAL_STORAGE` permission, but if you want to save camera pics to a different location you might need to grant the permission
+- Default settings don't need `WRITE_EXTERNAL_STORAGE` permission. But if you want to save camera pics to a different location you might need to grant the permission
 - Library **does not** need CAMERA permission. **However** if you have it declared in your Manifest, you must grant it to use `pickFromCamera(...)` methods. Refer [here](http://stackoverflow.com/questions/32789027/android-m-camera-intent-permission-bug)
 
 #### Use a combination of above by specifying which types to show `PickSource.CAMERA`, `PickSource.GALLERY` and/or `PickSource.DOCUMENTS` (refer to sample app for usage)

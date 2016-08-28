@@ -785,19 +785,8 @@ public class QuickImagePick {
 
         final Uri uri = getLastCameraUri(pContext);
         if (uri != null) {
-
-            final String path = FileUtils.getPath(pContext, uri);
-
-            if (path != null) {
-
-                final File file = new File(path);
-                if (file.exists() && file.isFile()) {
-                    //noinspection ResultOfMethodCallIgnored
-                    file.delete();
-                }
-
-            }
-
+            pContext.getContentResolver()
+                    .delete(uri, null, null);
         }
 
     }
