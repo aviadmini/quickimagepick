@@ -94,8 +94,8 @@ public class FileUtils {
             cursor = pContext.getContentResolver()
                              .query(pUri, projection, pSelection, pSelectionArgs, null);
             if (cursor != null && cursor.moveToFirst()) {
-                final int column_index = cursor.getColumnIndexOrThrow(column);
-                return cursor.getString(column_index);
+                final int column_index = cursor.getColumnIndex(column);
+                return column_index == -1 ? null : cursor.getString(column_index);
             }
         } finally {
             if (cursor != null) {

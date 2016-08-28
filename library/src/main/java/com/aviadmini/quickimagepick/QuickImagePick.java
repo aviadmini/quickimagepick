@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
@@ -728,14 +729,15 @@ public class QuickImagePick {
 
     /**
      * @param pContext app {@link Context}
-     * @return directory where pictures taken by camera apps will be saved or null if an error occurs
+     * @return directory where pictures taken by camera apps will be saved or null if an error occurs.
+     * By default it's a pictures directory on external storage.
      */
     public static File getCameraPicsDirectory(@NonNull final Context pContext) {
 
         final String camDirPath = PreferenceManager.getDefaultSharedPreferences(pContext)
                                                    .getString(PREFS_CAMERA_DIR, null);
 
-        final File dir = camDirPath == null ? pContext.getExternalFilesDir("cam_pics") : new File(camDirPath);
+        final File dir = camDirPath == null ? pContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES) : new File(camDirPath);
 
         if (dir != null) {
             //noinspection ConstantConditions,ResultOfMethodCallIgnored
@@ -746,7 +748,7 @@ public class QuickImagePick {
     }
 
     /**
-     * Change directory where pictures taken by camera apps will be saved. By default it's a subdirectory of app directory on external storage.
+     * Change directory where pictures taken by camera apps will be saved. By default it's a pictures directory on external storage.
      * <br>
      * <b>Important: you are responsible for deleting the files once you're done with them.</b>
      *
