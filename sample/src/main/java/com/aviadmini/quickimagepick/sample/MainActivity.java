@@ -1,6 +1,7 @@
 package com.aviadmini.quickimagepick.sample;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -31,10 +32,13 @@ public class MainActivity
         @Override
         public void onImagePicked(@NonNull final PickSource pPickSource, final int pRequestType, @NonNull final Uri pImageUri) {
 
-            Log.i(TAG, "Picked: " + pImageUri.toString());
+            final Context context = getApplicationContext();
+
+            Log.i(TAG, "Picked: " + pImageUri.toString() + ", MIME type: " + QuickImagePick.getMimeType(context,
+                    pImageUri) + ", file extension: " + QuickImagePick.getFileExtension(context, pImageUri));
 
             // Do something with Uri, for example load image into and ImageView
-            Glide.with(getApplicationContext())
+            Glide.with(context)
                  .load(pImageUri)
                  .fitCenter()
                  .into(mImageView);
@@ -65,11 +69,11 @@ public class MainActivity
 
         this.mImageView = (ImageView) findViewById(R.id.main_iv);
 
-//        final File outDir = Environment.getExternalStorageDirectory();
-//
-//        QuickImagePick.setCameraPicsDirectory(this, outDir.getAbsolutePath());
-//
-//        Log.d(TAG, outDir.getAbsolutePath() + ", can write: " + outDir.canWrite());
+        //        final File outDir = Environment.getExternalStorageDirectory();
+        //
+        //        QuickImagePick.setCameraPicsDirectory(this, outDir.getAbsolutePath());
+        //
+        //        Log.d(TAG, outDir.getAbsolutePath() + ", can write: " + outDir.canWrite());
 
     }
 

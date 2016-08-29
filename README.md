@@ -6,6 +6,7 @@ Easy to use and customizable image pick for Android. Requires API 9+
 * Use Documents app (API 19+) to pick image from gallery, cloud storage etc.
 * Take picture with device camera (using existing apps)
 * Mix and match: allow user to choose from any combination of above
+* Single call to get mime type and file extension of picked image (from returned Uri)
 * Supports activities and fragments (both plain and support ones)
 
 ## Usage
@@ -18,7 +19,7 @@ repositories {
 }
     
 dependencies {
-    compile 'com.github.aviadmini:quickimagepick:1.0.4'
+    compile 'com.github.aviadmini:quickimagepick:1.1.0'
 }
 ```
 

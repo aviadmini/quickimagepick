@@ -3,6 +3,7 @@ package com.aviadmini.quickimagepick;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,6 +19,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
+import android.text.TextUtils;
+import android.webkit.MimeTypeMap;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -789,6 +792,35 @@ public class QuickImagePick {
                     .delete(uri, null, null);
         }
 
+    }
+
+    // ==== URI TYPE AND FILE EXTENSION ==== //
+
+    /**
+     * @param pContext app context
+     * @param pUri     uri to get MIME type for
+     * @return MIME type for {@link Uri} content or null if cannot determine
+     */
+    @Nullable
+    public static String getMimeType(@NonNull final Context pContext, @NonNull final Uri pUri) {
+        return pContext.getContentResolver()
+                       .getType(pUri);
+    }
+
+    /**
+     * @param pContext app context
+     * @param pUri     uri to get MIME type for
+     * @return most common file extension for {@link Uri} content or null if cannot determine
+     */
+    public static String getFileExtension(@NonNull final Context pContext, @NonNull final Uri pUri) {
+
+        final ContentResolver contentResolver = pContext.getContentResolver();
+
+        final MimeTypeMap mime = MimeTypeMap.getSingleton();
+
+        final String mimeType = contentResolver.getType(pUri);
+
+        return TextUtils.isEmpty(mimeType) ? null : mime.getExtensionFromMimeType(mimeType);
     }
 
     // ==== //
