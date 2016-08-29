@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +16,8 @@ import android.widget.ImageView;
 import com.aviadmini.quickimagepick.PickSource;
 import com.aviadmini.quickimagepick.QuickImagePick;
 import com.bumptech.glide.Glide;
+
+import java.io.File;
 
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
@@ -34,8 +37,8 @@ public class MainActivity
 
             final Context context = getApplicationContext();
 
-            Log.i(TAG, "Picked: " + pImageUri.toString() + ", MIME type: " + QuickImagePick.getMimeType(context,
-                    pImageUri) + ", file extension: " + QuickImagePick.getFileExtension(context, pImageUri));
+            Log.i(TAG, "Picked: " + pImageUri.toString() + "\nMIME type: " + QuickImagePick.getMimeType(context,
+                    pImageUri) + "\nFile extension: " + QuickImagePick.getFileExtension(context, pImageUri) + "\nRequest type: " + pRequestType);
 
             // Do something with Uri, for example load image into and ImageView
             Glide.with(context)
@@ -69,11 +72,23 @@ public class MainActivity
 
         this.mImageView = (ImageView) findViewById(R.id.main_iv);
 
-        //        final File outDir = Environment.getExternalStorageDirectory();
-        //
-        //        QuickImagePick.setCameraPicsDirectory(this, outDir.getAbsolutePath());
-        //
-        //        Log.d(TAG, outDir.getAbsolutePath() + ", can write: " + outDir.canWrite());
+        final View btn1 = this.findViewById(R.id.btn_pick_local_jpg_webp);
+        final View btn2 = this.findViewById(R.id.btn_pick_png_jpg_camera_docs);
+        final View btn3 = this.findViewById(R.id.btn_pick_cam_only);
+
+        final View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(final View pView) {
+                MainActivityPermissionsDispatcher.btnCLickWithCheck(MainActivity.this, pView);
+            }
+        };
+        btn1.setOnClickListener(listener);
+        btn2.setOnClickListener(listener);
+        btn3.setOnClickListener(listener);
+
+        final File outDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "QuickImagePick Sample");
+        Log.d(TAG, outDir.getAbsolutePath() + ", can write: " + outDir.canWrite());
+        QuickImagePick.setCameraPicsDirectory(this, outDir.getAbsolutePath());
 
     }
 
@@ -87,8 +102,56 @@ public class MainActivity
     }
 
     @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    public void btnCLick(View view) {
-        QuickImagePick.pickFromMultipleSources(this, "Title", PickSource.CAMERA, PickSource.DOCUMENTS, PickSource.GALLERY);
+    public void btnCLick(final View pView) {
+
+        switch (pView.getId()) {
+
+            case R.id.btn_pick_local_jpg_webp: {
+
+                QuickImagePick.allowOnlyLocalContent(this, true);
+
+                final String[] types = {QuickImagePick.MIME_TYPE_IMAGE_JPEG, QuickImagePick.MIME_TYPE_IMAGE_WEBP};
+                QuickImagePick.setAllowedMimeTypes(this, types);
+
+                QuickImagePick.pickFromMultipleSources(this, 1, "All sources", PickSource.CAMERA, PickSource.DOCUMENTS, PickSource.GALLERY);
+
+                break;
+            }
+
+            case R.id.btn_pick_png_jpg_camera_docs: {
+
+                QuickImagePick.allowOnlyLocalContent(this, false);
+
+                final String[] types = {QuickImagePick.MIME_TYPE_IMAGE_JPEG, QuickImagePick.MIME_TYPE_IMAGE_PNG};
+                QuickImagePick.setAllowedMimeTypes(this, types);
+
+                QuickImagePick.pickFromMultipleSources(this, 2, "Camera or Docs", PickSource.CAMERA, PickSource.DOCUMENTS);
+
+                break;
+            }
+
+            case R.id.btn_pick_cam_only: {
+
+                // doesn't matter for camera I guess, but doesn't hurt
+                QuickImagePick.allowOnlyLocalContent(this, false);
+
+                QuickImagePick.setAllImageMimeTypesAllowed(this);
+
+                QuickImagePick.pickFromCamera(this, 3);
+
+                break;
+            }
+
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(final int pRequestCode, @NonNull final String[] pPermissions, @NonNull final int[] pGrantResults) {
+        super.onRequestPermissionsResult(pRequestCode, pPermissions, pGrantResults);
+
+        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, pRequestCode, pGrantResults);
+
     }
 
 }

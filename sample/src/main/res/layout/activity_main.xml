@@ -9,12 +9,40 @@
     tools:context="com.aviadmini.quickimagepick.sample.MainActivity"
     >
 
-    <Button
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="btnCLick"
-        android:text="@string/btn_pick"
-        />
+        >
+
+        <Button
+            android:layout_weight="1"
+            android:id="@+id/btn_pick_local_jpg_webp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="btnCLick"
+            android:text="@string/btn_pick_local_jpg_webp_text"
+            />
+
+        <Button
+            android:layout_weight="1"
+            android:id="@+id/btn_pick_png_jpg_camera_docs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="btnCLick"
+            android:text="@string/btn_pick_png_jpg_camera_docs_text"
+            />
+
+        <Button
+            android:layout_weight="1"
+            android:id="@+id/btn_pick_cam_only"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="btnCLick"
+            android:text="@string/btn_pick_cam_only_text"
+            />
+
+    </LinearLayout>
+
 
     <ImageView
         android:id="@+id/main_iv"

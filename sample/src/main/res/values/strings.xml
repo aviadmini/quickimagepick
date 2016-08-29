@@ -2,6 +2,8 @@
 
     <string name="app_name">QuickImagePick Sample</string>
 
-    <string name="btn_pick">Pick</string>
+    <string name="btn_pick_local_jpg_webp_text">Local jpg/webp</string>
+    <string name="btn_pick_png_jpg_camera_docs_text">cam/docs png/jpg</string>
+    <string name="btn_pick_cam_only_text">Cam only</string>
 
 </resources>

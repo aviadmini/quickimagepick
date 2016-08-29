@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
@@ -19,25 +20,32 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
-import android.text.TextUtils;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
  * Easy to use image picker. Use one of {@code pickFrom...} methods to trigger image pick and
  * get result in {@code onActivityResult} method of the same Activity or Fragment.
+ *
+ * @see <a href="https://github.com/aviadmini/quickimagepick">GitHub repo</a>
  */
 @SuppressWarnings("unused")
 @SuppressLint("NewApi")
 public class QuickImagePick {
 
-    private static final String PREFS_REQUEST_TYPE    = "req_type";
-    private static final String PREFS_LAST_CAMERA_URI = "last_cam_uri";
-    private static final String PREFS_CAMERA_DIR      = "cam_dir";
+    private static final String PREFS_REQUEST_TYPE                 = "qip_req_type";
+    private static final String PREFS_LAST_CAMERA_URI              = "qip_last_cam_uri";
+    private static final String PREFS_CAMERA_DIR                   = "qip_cam_dir";
+    private static final String PREFS_ALLOWED_MIME_TYPE_PRE_KITKAT = "qip_allowed_mime_type_pre_kitkat";
+    private static final String PREFS_ALLOWED_MIME_TYPES           = "qip_allowed_mime_types";
+    private static final String PREFS_ALLOW_LOCAL_CONTENT_ONLY     = "qip_local_content_only";
 
     private static final int REQ_CAMERA    = 4001;
     private static final int REQ_GALLERY   = 4002;
@@ -48,6 +56,13 @@ public class QuickImagePick {
     public static final String ERR_CAMERA_CANNOT_WRITE_OUTPUT = "App cannot write to specified camera output directory";
     public static final String ERR_GALLERY_NULL_RESULT        = "Gallery returned bad/null data";
     public static final String ERR_DOCS_NULL_RESULT           = "Documents returned bad/null data";
+
+    private static final String MIME_TYPE_IMAGES_ALL = "image/*";
+    public static final  String MIME_TYPE_IMAGE_BMP  = "image/bmp";
+    public static final  String MIME_TYPE_IMAGE_GIF  = "image/gif";
+    public static final  String MIME_TYPE_IMAGE_JPEG = "image/jpeg";
+    public static final  String MIME_TYPE_IMAGE_PNG  = "image/png";
+    public static final  String MIME_TYPE_IMAGE_WEBP = "image/webp";
 
     private static final boolean API_19 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
     private static final boolean API_23 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
@@ -263,7 +278,13 @@ public class QuickImagePick {
                          .putInt(PREFS_REQUEST_TYPE, pRequestType)
                          .apply();
 
-        return new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        final Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+        setIntentLocalContentOnly(pContext, intent);
+
+        setIntentAllowedMimeTypes(pContext, intent);
+
+        return intent;
     }
 
     // ==== DOCUMENTS ==== //
@@ -340,13 +361,17 @@ public class QuickImagePick {
     @NonNull
     private static Intent prepareDocumentsIntent(@NonNull final Context pContext, final int pRequestType) {
 
-        PreferenceManager.getDefaultSharedPreferences(pContext)
-                         .edit()
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(pContext);
+
+        sharedPreferences.edit()
                          .putInt(PREFS_REQUEST_TYPE, pRequestType)
                          .apply();
 
         final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*");
+
+        setIntentLocalContentOnly(pContext, intent);
+
+        setIntentAllowedMimeTypes(pContext, intent);
 
         return intent;
     }
@@ -794,33 +819,202 @@ public class QuickImagePick {
 
     }
 
+    // ==== ALLOWED MIME TYPES ==== //
+
+    /**
+     * Note: has no effect on pre-KitKat (API 19-)
+     *
+     * @param pContext          app {@link Context}
+     * @param pAllowedMimeTypes MIME types of files that will be allowed to be picked from gallery/documents
+     */
+    public static void setAllowedMimeTypes(@NonNull final Context pContext, @NonNull final String... pAllowedMimeTypes) {
+
+        if (!API_19) {
+            return;
+        }
+
+        PreferenceManager.getDefaultSharedPreferences(pContext)
+                         .edit()
+                         .putStringSet(PREFS_ALLOWED_MIME_TYPES, new HashSet<>(Arrays.asList(pAllowedMimeTypes)))
+                         .apply();
+
+    }
+
+    /**
+     * Note: has no effect on pre-KitKat (API 19-)
+     *
+     * @param pContext          app {@link Context}
+     * @param pAllowedMimeTypes MIME types of files that will be allowed to be picked from gallery/documents
+     */
+    public static void setAllowedMimeTypes(@NonNull final Context pContext, @NonNull final List<String> pAllowedMimeTypes) {
+
+        if (!API_19) {
+            return;
+        }
+
+        PreferenceManager.getDefaultSharedPreferences(pContext)
+                         .edit()
+                         .putStringSet(PREFS_ALLOWED_MIME_TYPES, new HashSet<>(pAllowedMimeTypes))
+                         .apply();
+    }
+
+    /**
+     * Note: has no effect on pre-KitKat (API 19-)
+     *
+     * @param pContext          app {@link Context}
+     * @param pAllowedMimeTypes MIME types of files that will be allowed to be picked from gallery/documents
+     */
+    public static void setAllowedMimeTypes(@NonNull final Context pContext, @NonNull final Set<String> pAllowedMimeTypes) {
+
+        if (!API_19) {
+            return;
+        }
+
+        PreferenceManager.getDefaultSharedPreferences(pContext)
+                         .edit()
+                         .putStringSet(PREFS_ALLOWED_MIME_TYPES, pAllowedMimeTypes)
+                         .apply();
+
+    }
+
+    /**
+     * Note: has no effect on KitKat onwards (API 19+)
+     *
+     * @param pContext         app {@link Context}
+     * @param pAllowedMimeType MIME type of files that will be allowed to be picked from gallery/documents
+     */
+    public static void setAllowedMimeType(@NonNull final Context pContext, @NonNull final String pAllowedMimeType) {
+
+        if (API_19) {
+            return;
+        }
+
+        PreferenceManager.getDefaultSharedPreferences(pContext)
+                         .edit()
+                         .putString(PREFS_ALLOWED_MIME_TYPE_PRE_KITKAT, pAllowedMimeType)
+                         .apply();
+
+    }
+
+    /**
+     * Allow all image types to be selected (using MIME type 'image/*')
+     *
+     * @param pContext app {@link Context}
+     */
+    public static void setAllImageMimeTypesAllowed(@NonNull final Context pContext) {
+        PreferenceManager.getDefaultSharedPreferences(pContext)
+                         .edit()
+                         .remove(PREFS_ALLOWED_MIME_TYPES)
+                         .apply();
+    }
+
+    /**
+     * @param pContext app {@link Context}
+     * @return a set with all allowed mime types
+     */
+    public static Set<String> getAllowedMimeTypes(@NonNull final Context pContext) {
+
+        final Set<String> set = PreferenceManager.getDefaultSharedPreferences(pContext)
+                                                 .getStringSet(PREFS_ALLOWED_MIME_TYPES, new HashSet<String>(1));
+
+        if (set.size() == 0) {
+            set.add(MIME_TYPE_IMAGES_ALL);
+        }
+
+        return set;
+    }
+
+    // ==== INTENT EXTRAS ==== //
+
+    private static void setIntentLocalContentOnly(@NonNull final Context pContext, @NonNull final Intent pIntent) {
+        pIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, PreferenceManager.getDefaultSharedPreferences(pContext)
+                                                                   .getBoolean(PREFS_ALLOW_LOCAL_CONTENT_ONLY, false));
+    }
+
+    private static void setIntentAllowedMimeTypes(@NonNull final Context pContext, @NonNull final Intent pIntent) {
+
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(pContext);
+
+        if (API_19) {
+
+            pIntent.setType(MIME_TYPE_IMAGES_ALL);
+
+            final Set<String> allowedMimeTypes = sharedPreferences.getStringSet(PREFS_ALLOWED_MIME_TYPES, null);
+            if (allowedMimeTypes != null && allowedMimeTypes.size() != 0) {
+
+                final String[] types = allowedMimeTypes.toArray(new String[allowedMimeTypes.size()]);
+                pIntent.putExtra(Intent.EXTRA_MIME_TYPES, types);
+
+            }
+
+        } else {
+
+            final String allowedMimeType = sharedPreferences.getString(PREFS_ALLOWED_MIME_TYPE_PRE_KITKAT, MIME_TYPE_IMAGES_ALL);
+            pIntent.setType(allowedMimeType);
+
+        }
+
+    }
+
+    // ==== LOCAL ONLY ==== //
+
+    /**
+     * @param pContext        app {@link Context}
+     * @param pAllowLocalOnly pass true to not allow remote content
+     */
+    public static void allowOnlyLocalContent(@NonNull final Context pContext, final boolean pAllowLocalOnly) {
+        PreferenceManager.getDefaultSharedPreferences(pContext)
+                         .edit()
+                         .putBoolean(PREFS_ALLOW_LOCAL_CONTENT_ONLY, pAllowLocalOnly)
+                         .apply();
+    }
+
     // ==== URI TYPE AND FILE EXTENSION ==== //
 
     /**
-     * @param pContext app context
+     * @param pContext app {@link Context}
      * @param pUri     uri to get MIME type for
      * @return MIME type for {@link Uri} content or null if cannot determine
      */
     @Nullable
     public static String getMimeType(@NonNull final Context pContext, @NonNull final Uri pUri) {
-        return pContext.getContentResolver()
-                       .getType(pUri);
+
+        // first try to get it from content resolver
+        final String contentResolverChoice = pContext.getContentResolver()
+                                                     .getType(pUri);
+
+        // if content resolver fails and it's a file Uri then try guessing by extension
+        if (contentResolverChoice == null && ContentResolver.SCHEME_FILE.equals(pUri.getScheme())) {
+
+            final String extension = MimeTypeMap.getFileExtensionFromUrl(pUri.toString());
+
+            return extension == null ? null : MimeTypeMap.getSingleton()
+                                                         .getMimeTypeFromExtension(extension);
+        } else {
+            return contentResolverChoice;
+        }
+
     }
 
     /**
-     * @param pContext app context
+     * @param pContext app {@link Context}
      * @param pUri     uri to get MIME type for
      * @return most common file extension for {@link Uri} content or null if cannot determine
      */
     public static String getFileExtension(@NonNull final Context pContext, @NonNull final Uri pUri) {
 
-        final ContentResolver contentResolver = pContext.getContentResolver();
+        // first try to get extension from mime type
+        final String mimeType = pContext.getContentResolver()
+                                        .getType(pUri);
 
-        final MimeTypeMap mime = MimeTypeMap.getSingleton();
+        if (mimeType != null) {
+            return MimeTypeMap.getSingleton()
+                              .getExtensionFromMimeType(mimeType);
+        } else {
+            // if content resolver fails then try to get it from url
+            return MimeTypeMap.getFileExtensionFromUrl(pUri.toString());
+        }
 
-        final String mimeType = contentResolver.getType(pUri);
-
-        return TextUtils.isEmpty(mimeType) ? null : mime.getExtensionFromMimeType(mimeType);
     }
 
     // ==== //
