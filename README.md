@@ -8,6 +8,7 @@ Easy to use and customizable image pick for Android.
 * Use Documents app (API 19+) to pick image from gallery, cloud storage etc.
 * Take picture with device camera (using existing apps)
 * Mix and match: allow user to choose from any combination of above
+* Save `Uri` content to a `File`
 * Allow only local content to be picked
 * Set allowed MIME types of files that can be picked (single for pre KitKat, multiple Kitkat onwards)
 * Single call to get MIME type and file extension of picked image (from returned Uri)
@@ -15,7 +16,7 @@ Easy to use and customizable image pick for Android.
 
 ## Why this library?
 
-* More functionality (allowed MIME types, get file extension/MIME type from `Uri`, allow local only or local+remote image sources, etc) 
+* More functionality (numerous useful operations with `Uri`, multiple pick options, etc) 
 * It works with content data type rather than filesystem (solving `FileUriExposedException` issue of using latter)
 
 ## Usage
@@ -28,7 +29,7 @@ repositories {
 }
     
 dependencies {
-    compile 'com.github.aviadmini:quickimagepick:1.2.0'
+    compile 'com.github.aviadmini:quickimagepick:1.3.0'
 }
 ```
 
@@ -99,6 +100,12 @@ super.onActivityResult(pRequestCode, pResultCode, pData);
 
 ### Dessert
 
+#### Save content from `Uri` to a `File`
+
+```java
+QuickImagePick.saveContentToFile(Context, Uri, File) throws IOException;
+```
+
 #### Allow only local content to be picked
 
 ```java
@@ -121,12 +128,19 @@ QuickImagePick.getUriMimeType(Context, Uri);
 QuickImagePick.getUriFileExtension(Context, Uri);
 ```
 
+#### Delete content specified by `Uri`
+
+```java
+QuickImagePick.deleteContent(Context, Uri);
+```
+
 ### Vector
 
 There's a few extension ideas that might make the library even more useful. 
 
 - explicit integration with file pickers
 - custom camera module
+- tell me more ;)
 
 If your app uses this library send me market links ;)
 

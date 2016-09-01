@@ -12,12 +12,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.aviadmini.quickimagepick.PickSource;
 import com.aviadmini.quickimagepick.QuickImagePick;
 import com.bumptech.glide.Glide;
 
 import java.io.File;
+import java.io.IOException;
 
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
@@ -28,6 +30,8 @@ public class MainActivity
 
     private static final String TAG = "QIP Sample";
 
+    private static final String QIP_DIR_NAME = "QuickImagePick Sample";
+
     private ImageView mImageView;
 
     final QuickImagePick.Callback mCallback = new QuickImagePick.Callback() {
@@ -37,14 +41,35 @@ public class MainActivity
 
             final Context context = getApplicationContext();
 
+            final String extension = QuickImagePick.getFileExtension(context, pImageUri);
             Log.i(TAG, "Picked: " + pImageUri.toString() + "\nMIME type: " + QuickImagePick.getMimeType(context,
-                    pImageUri) + "\nFile extension: " + QuickImagePick.getFileExtension(context, pImageUri) + "\nRequest type: " + pRequestType);
+                    pImageUri) + "\nFile extension: " + extension + "\nRequest type: " + pRequestType);
 
             // Do something with Uri, for example load image into and ImageView
             Glide.with(context)
                  .load(pImageUri)
                  .fitCenter()
                  .into(mImageView);
+
+            // DO NOT do this on main thread. This is only for reference
+            try {
+
+                final String ext = extension == null ? "" : "." + extension;
+                final File outDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), QIP_DIR_NAME);
+                final File file = new File(outDir, "qip_temp" + ext);
+
+                //noinspection ResultOfMethodCallIgnored
+                outDir.mkdirs();
+
+                QuickImagePick.saveContentToFile(getApplicationContext(), pImageUri, file);
+
+                Toast.makeText(getApplicationContext(), "Save complete", Toast.LENGTH_SHORT)
+                     .show();
+
+            } catch (IOException pE) {
+                Toast.makeText(getApplicationContext(), "Save failed: " + pE.getMessage(), Toast.LENGTH_SHORT)
+                     .show();
+            }
 
         }
 
@@ -86,7 +111,7 @@ public class MainActivity
         btn2.setOnClickListener(listener);
         btn3.setOnClickListener(listener);
 
-        final File outDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "QuickImagePick Sample");
+        final File outDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), QIP_DIR_NAME);
         Log.d(TAG, outDir.getAbsolutePath() + ", can write: " + outDir.canWrite());
         QuickImagePick.setCameraPicsDirectory(this, outDir.getAbsolutePath());
 

@@ -11,7 +11,7 @@ android {
         targetSdkVersion 24
 
         versionCode 1
-        versionName "1.2.0"
+        versionName LIB_VERSION_NAME as String
 
     }
 
