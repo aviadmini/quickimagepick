@@ -6,7 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * TODO
+ * Result code for {@link PickRequest} trigger
  *
  * @since v2.0.0
  */
