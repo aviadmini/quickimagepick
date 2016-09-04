@@ -14,8 +14,12 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.aviadmini.quickimagepick.PickCallback;
 import com.aviadmini.quickimagepick.PickSource;
+import com.aviadmini.quickimagepick.PickTriggerResult;
+import com.aviadmini.quickimagepick.QiPick;
 import com.aviadmini.quickimagepick.QuickImagePick;
+import com.aviadmini.quickimagepick.UriUtils;
 import com.bumptech.glide.Glide;
 
 import java.io.File;
@@ -32,26 +36,27 @@ public class MainActivity
 
     private static final String QIP_DIR_NAME = "QuickImagePick Sample";
 
+    private static final boolean USE_DEPRECATED_API = false;
+
     private ImageView mImageView;
 
-    final QuickImagePick.Callback mCallback = new QuickImagePick.Callback() {
+    final PickCallback mCallback = new PickCallback() {
 
         @Override
         public void onImagePicked(@NonNull final PickSource pPickSource, final int pRequestType, @NonNull final Uri pImageUri) {
 
             final Context context = getApplicationContext();
 
-            final String extension = QuickImagePick.getFileExtension(context, pImageUri);
-            Log.i(TAG, "Picked: " + pImageUri.toString() + "\nMIME type: " + QuickImagePick.getMimeType(context,
+            final String extension = UriUtils.getFileExtension(context, pImageUri);
+            Log.i(TAG, "Picked: " + pImageUri.toString() + "\nMIME type: " + UriUtils.getMimeType(context,
                     pImageUri) + "\nFile extension: " + extension + "\nRequest type: " + pRequestType);
 
-            // Do something with Uri, for example load image into and ImageView
+            // Do something with Uri, for example load image into an ImageView
             Glide.with(context)
                  .load(pImageUri)
                  .fitCenter()
                  .into(mImageView);
 
-            // DO NOT do this on main thread. This is only for reference
             try {
 
                 final String ext = extension == null ? "" : "." + extension;
@@ -61,7 +66,8 @@ public class MainActivity
                 //noinspection ResultOfMethodCallIgnored
                 outDir.mkdirs();
 
-                QuickImagePick.saveContentToFile(getApplicationContext(), pImageUri, file);
+                // DO NOT do this on main thread. This is only for reference
+                UriUtils.saveContentToFile(getApplicationContext(), pImageUri, file);
 
                 Toast.makeText(getApplicationContext(), "Save complete", Toast.LENGTH_SHORT)
                      .show();
@@ -111,71 +117,171 @@ public class MainActivity
         btn2.setOnClickListener(listener);
         btn3.setOnClickListener(listener);
 
-        final File outDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), QIP_DIR_NAME);
-        Log.d(TAG, outDir.getAbsolutePath() + ", can write: " + outDir.canWrite());
-        QuickImagePick.setCameraPicsDirectory(this, outDir.getAbsolutePath());
+        if (USE_DEPRECATED_API) {
+
+            final File outDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), QIP_DIR_NAME);
+            Log.d(TAG, outDir.getAbsolutePath() + ", can write: " + outDir.canWrite());
+            QuickImagePick.setCameraPicsDirectory(this, outDir.getAbsolutePath());
+
+        }
 
     }
 
     @Override
     protected void onActivityResult(final int pRequestCode, final int pResultCode, final Intent pData) {
 
-        if (!QuickImagePick.handleActivityResult(getApplicationContext(), pRequestCode, pResultCode, pData, this.mCallback)) {
-            super.onActivityResult(pRequestCode, pResultCode, pData);
-        }
+        if (USE_DEPRECATED_API) {
 
-    }
-
-    @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    public void btnCLick(final View pView) {
-
-        switch (pView.getId()) {
-
-            case R.id.btn_pick_local_jpg_webp: {
-
-                QuickImagePick.allowOnlyLocalContent(this, true);
-
-                final String[] types = {QuickImagePick.MIME_TYPE_IMAGE_JPEG, QuickImagePick.MIME_TYPE_IMAGE_WEBP};
-                QuickImagePick.setAllowedMimeTypes(this, types);
-
-                QuickImagePick.pickFromMultipleSources(this, 1, "All sources", PickSource.CAMERA, PickSource.DOCUMENTS, PickSource.GALLERY);
-
-                break;
+            if (!QuickImagePick.handleActivityResult(getApplicationContext(), pRequestCode, pResultCode, pData, this.mCallback)) {
+                super.onActivityResult(pRequestCode, pResultCode, pData);
             }
 
-            case R.id.btn_pick_png_jpg_camera_docs: {
+        } else {
 
-                QuickImagePick.allowOnlyLocalContent(this, false);
-
-                final String[] types = {QuickImagePick.MIME_TYPE_IMAGE_JPEG, QuickImagePick.MIME_TYPE_IMAGE_PNG};
-                QuickImagePick.setAllowedMimeTypes(this, types);
-
-                QuickImagePick.pickFromMultipleSources(this, 2, "Camera or Docs", PickSource.CAMERA, PickSource.DOCUMENTS);
-
-                break;
-            }
-
-            case R.id.btn_pick_cam_only: {
-
-                // doesn't matter for camera I guess, but doesn't hurt
-                QuickImagePick.allowOnlyLocalContent(this, false);
-
-                QuickImagePick.setAllImageMimeTypesAllowed(this);
-
-                QuickImagePick.pickFromCamera(this, 3);
-
-                break;
+            if (!QiPick.handleActivityResult(getApplicationContext(), pRequestCode, pResultCode, pData, this.mCallback)) {
+                super.onActivityResult(pRequestCode, pResultCode, pData);
             }
 
         }
-
     }
 
     @Override
     public void onRequestPermissionsResult(final int pRequestCode, @NonNull final String[] pPermissions, @NonNull final int[] pGrantResults) {
         super.onRequestPermissionsResult(pRequestCode, pPermissions, pGrantResults);
 
-        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, pRequestCode, pGrantResults);
+        MainActivityPermissionsDispatcher.onRequestPermissionsResult(MainActivity.this, pRequestCode, pGrantResults);
+
+    }
+
+    @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    public void btnCLick(final View pView) {
+
+        final File outDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), QIP_DIR_NAME);
+        Log.d(TAG, outDir.getAbsolutePath() + ", can write: " + outDir.canWrite());
+
+        // If directory is not writable then PickRequest trigger will return an error
+
+        switch (pView.getId()) {
+
+            case R.id.btn_pick_local_jpg_webp: {
+
+                if (USE_DEPRECATED_API) {
+
+                    QuickImagePick.allowOnlyLocalContent(this, true);
+
+                    final String[] types = {QuickImagePick.MIME_TYPE_IMAGE_JPEG, QuickImagePick.MIME_TYPE_IMAGE_WEBP};
+                    QuickImagePick.setAllowedMimeTypes(this, types);
+
+                    QuickImagePick.pickFromMultipleSources(this, 1, "All sources", PickSource.CAMERA, PickSource.DOCUMENTS, PickSource.GALLERY);
+
+                } else {
+
+                    @PickTriggerResult final int triggerResult;
+                    triggerResult = QiPick.in(this)
+                                          .allowOnlyLocalContent(true)
+                                          .withAllowedMimeTypes(QiPick.MIME_TYPE_IMAGE_JPEG, QiPick.MIME_TYPE_IMAGE_WEBP)
+                                          .withCameraPicsDirectory(outDir)
+                                          .withRequestType(1)
+                                          .fromMultipleSources("All sources", PickSource.CAMERA, PickSource.DOCUMENTS, PickSource.GALLERY);
+
+                    this.solveTriggerResult(triggerResult);
+
+                }
+
+                break;
+            }
+
+            case R.id.btn_pick_png_jpg_camera_docs: {
+
+                if (USE_DEPRECATED_API) {
+
+                    QuickImagePick.allowOnlyLocalContent(this, false);
+
+                    final String[] types = {QuickImagePick.MIME_TYPE_IMAGE_JPEG, QuickImagePick.MIME_TYPE_IMAGE_PNG};
+                    QuickImagePick.setAllowedMimeTypes(this, types);
+
+                    QuickImagePick.pickFromMultipleSources(this, 2, "Camera or Docs", PickSource.CAMERA, PickSource.DOCUMENTS);
+
+                } else {
+
+                    @PickTriggerResult final int triggerResult;
+                    triggerResult = QiPick.in(this)
+                                          .allowOnlyLocalContent(false)
+                                          .withAllowedMimeTypes(QiPick.MIME_TYPE_IMAGE_JPEG, QiPick.MIME_TYPE_IMAGE_PNG)
+                                          .withCameraPicsDirectory(outDir)
+                                          .withRequestType(2)
+                                          .fromMultipleSources("All sources", PickSource.CAMERA, PickSource.DOCUMENTS);
+
+                    this.solveTriggerResult(triggerResult);
+
+                }
+
+                break;
+            }
+
+            case R.id.btn_pick_cam_only: {
+
+                if (USE_DEPRECATED_API) {
+
+                    // doesn't matter for camera I guess, but doesn't hurt
+                    QuickImagePick.allowOnlyLocalContent(this, false);
+
+                    QuickImagePick.setAllImageMimeTypesAllowed(this);
+
+                    QuickImagePick.pickFromCamera(this, 3);
+
+                } else {
+
+                    @PickTriggerResult final int triggerResult;
+                    triggerResult = QiPick.in(this)
+                                          .withAllImageMimeTypesAllowed()
+                                          .withCameraPicsDirectory(outDir)
+                                          .withRequestType(3)
+                                          .fromCamera();
+
+                    this.solveTriggerResult(triggerResult);
+
+                }
+
+                break;
+            }
+
+        }
+
+    }
+
+    private void solveTriggerResult(final @PickTriggerResult int pTriggerResult) {
+
+        switch (pTriggerResult) {
+
+            case PickTriggerResult.TRIGGER_PICK_ERR_CAM_FILE: {
+
+                Toast.makeText(this, "Could not create file to save Camera image. Make sure camera pics dir is writable", Toast.LENGTH_SHORT)
+                     .show();
+
+                break;
+            }
+
+            case PickTriggerResult.TRIGGER_PICK_ERR_NO_ACTIVITY: {
+
+                Toast.makeText(this, "There is no Activity that can pick requested file :(", Toast.LENGTH_SHORT)
+                     .show();
+
+                break;
+            }
+
+            case PickTriggerResult.TRIGGER_PICK_ERR_NO_PICK_SOURCES: {
+
+                Toast.makeText(this, "Dear dev, multiple source request needs at least one source!", Toast.LENGTH_SHORT)
+                     .show();
+
+                break;
+            }
+
+            case PickTriggerResult.TRIGGER_PICK_OK: {
+                break;// all good, do nothing
+            }
+        }
 
     }
 

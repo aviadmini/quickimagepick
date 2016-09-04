@@ -1,27 +1,37 @@
-[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-QuickImagePick-blue.svg?style=flat-square)](http://android-arsenal.com/details/1/4248)
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-QuickImagePick-blue.svg?style=flat-square)](http://android-arsenal.com/details/1/4248) [![license](https://img.shields.io/github/license/aviadmini/quickimagepick.svg?maxAge=2592000)]()
 
 # QuickImagePick
 
-Easy to use and customizable image pick for Android.
+Easy to use and highly customizable image picker for Android with helpful extras to deal with outputs. Minimum API 9+, gets better with newer API versions
  
-* Pick image from gallery
-* Use Documents app (API 19+) to pick image from gallery, cloud storage etc.
+API 9+ (Gingerbread) functionality:
+
+* Pick image from gallery (using existing apps)
+* Use content manager apps (usually file managers) to pick image
 * Take picture with device camera (using existing apps)
 * Mix and match: allow user to choose from any combination of above
 * Save `Uri` content to a `File`
-* Allow only local content to be picked
-* Set allowed MIME types of files that can be picked (single for pre KitKat, multiple Kitkat onwards)
+* Set allowed MIME type of files that can be picked
 * Single call to get MIME type and file extension of picked image (from returned Uri)
 * Supports activities and fragments (both plain and support ones)
 
+API 11+ (Honeycomb):
+
+* Allow only local content to be picked
+
+API 19+ (KitKat):
+
+* Additionally use Documents app (API 19+) to pick image from gallery, cloud storage etc.
+* Allow multiple MIME types of files that can be picked
+
 ## Why this library?
 
+* Simple yet powerful API with chained calls
+* Activity, Fragment and support Fragment targets for returning picked result
 * More functionality (numerous useful operations with `Uri`, multiple pick options, etc) 
-* It works with content data type rather than filesystem (solving `FileUriExposedException` issue of using latter)
+* It works with content data type rather than filesystem (solving `FileUriExposedException` issue on Nougat)
 
-## Usage
-
-### Step 1: import Gradle dependency
+## Dependency
 
 ```groovy
 repositories {
@@ -29,61 +39,48 @@ repositories {
 }
     
 dependencies {
-    compile 'com.github.aviadmini:quickimagepick:1.3.0'
+    compile 'com.github.aviadmini:quickimagepick:${qip.release.version}'
 }
 ```
 
-### Step 2: trigger pick flow 
+Latest release: [![GitHub release](https://img.shields.io/github/release/aviadmini/quickimagepick.svg)]()
 
-#### Show gallery apps to choose picture
-- Use one of `QuickImagePick.pickFromGallery(...)` methods
-- Choose allowed MIME types of files that can be picked
+## Usage
 
-#### Choose picture using Documents app
-- Use one of `QuickImagePick.pickFromDocuments(...)` methods
-- Note: on pre-KitKat this will show file manager apps to choose a picture
-- Choose allowed MIME types of files that can be picked
+For detailed explanation refer to [Documentation](https://github.com/aviadmini/quickimagepick/wiki/Documentation) and sample app
 
-#### Show camera apps to take a picture
-- Use one of `QuickImagePick.pickFromCamera(...)` methods
-- You can change the directory where pictures are saved by calling `setCameraPicsDirectory(Context pContext, String pDirPath)`, set to `null` to use default (pictures directory on external storage) 
-- **EXTREMELY IMPORTANT: library does not delete the images taken by camera. You must do it yourself after you're done with them to prevent using too much storage space** 
-- Default settings don't need `WRITE_EXTERNAL_STORAGE` permission. But if you want to save camera pics to a different location you might need to grant the permission
-- Library **does not** need CAMERA permission. **However** if you have it declared in your Manifest, you must grant it to use `pickFromCamera(...)` methods. Refer [here](http://stackoverflow.com/questions/32789027/android-m-camera-intent-permission-bug)
-
-#### Use a combination of above by specifying which types to show `PickSource.CAMERA`, `PickSource.GALLERY` and/or `PickSource.DOCUMENTS` (refer to sample app for usage)
-- `QuickImagePick.pickFromMultipleSources(...)`
-
-### Step 3: Get your picture `Uri`
+#### Fire pick request
 
 ```java
-final QuickImagePick.Callback mCallback = new QuickImagePick.Callback() {
+@PickTriggerResult final int triggerResult;
+triggerResult = QiPick.in(Activity or Fragment)
+                      .fromMultipleSources("All sources", PickSource.CAMERA, PickSource.DOCUMENTS);
+```
+Here `triggerResult` defines whether pick request was fired successfully. If not, it can be treated as error code.
+
+#### Consume result
+In `onActivityResult` of Activity or Fragment:
+
+```java
+private final PickCallback mCallback = new PickCallback() {
 
     @Override
     public void onImagePicked(@NonNull final PickSource pPickSource, final int pRequestType, @NonNull final Uri pImageUri) {
-
-        Log.i(TAG, "Picked: " + pImageUri.toString());
-
-        // Do something with Uri, for example load image into and ImageView
+        // Do something with Uri, for example load image into an ImageView
         Glide.with(getApplicationContext())
              .load(pImageUri)
              .fitCenter()
              .into(mImageView);
-
     }
 
     @Override
     public void onError(@NonNull final PickSource pPickSource, final int pRequestType, @NonNull final String pErrorString) {
-
         Log.e(TAG, "Err: " + pErrorString);
-
     }
 
     @Override
     public void onCancel(@NonNull final PickSource pPickSource, final int pRequestType) {
-
         Log.d(TAG, "Cancel: " + pPickSource.name());
-
     }
 
 };
@@ -93,53 +90,20 @@ protected void onActivityResult(final int pRequestCode, final int pResultCode, f
 super.onActivityResult(pRequestCode, pResultCode, pData);
     super.onActivityResult(pRequestCode, pResultCode, pData);
     
-    QuickImagePick.handleActivityResult(getApplicationContext(), pRequestCode, pResultCode, pData, this.mCallback);
+    QiPick.handleActivityResult(getApplicationContext(), pRequestCode, pResultCode, pData, this.mCallback);
             
 }
 ```
 
-### Dessert
+#### Dessert
 
-#### Save content from `Uri` to a `File`
+There's a bunch of useful methods to work with `Uri` in `UriUtils`
 
-```java
-QuickImagePick.saveContentToFile(Context, Uri, File) throws IOException;
-```
-
-#### Allow only local content to be picked
-
-```java
-QuickImagePick.allowOnlyLocalContent(boolean);
-```
-
-#### Set allowed MIME types of files that can be picked (gallery/documents)
-
-```java
-QuickImagePick.setAllowedMimeTypes(Context, String...);
-QuickImagePick.setAllowedMimeTypes(Context, List<String>);
-QuickImagePick.setAllowedMimeTypes(Context, Set<String>);
-QuickImagePick.setAllImageTypesAllowed(Context);
-```
-
-#### Get MIME type or common file extension of an `Uri`
-
-```java
-QuickImagePick.getUriMimeType(Context, Uri);
-QuickImagePick.getUriFileExtension(Context, Uri);
-```
-
-#### Delete content specified by `Uri`
-
-```java
-QuickImagePick.deleteContent(Context, Uri);
-```
-
-### Vector
+## Vector
 
 There's a few extension ideas that might make the library even more useful. 
 
-- explicit integration with file pickers
-- custom camera module
+- ability to explicitly add file picker(-s) as pick sources
 - tell me more ;)
 
 If your app uses this library send me market links ;)

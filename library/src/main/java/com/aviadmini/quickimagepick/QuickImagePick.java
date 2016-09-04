@@ -3,7 +3,6 @@ package com.aviadmini.quickimagepick;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,65 +10,44 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
-import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.UiThread;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
-import android.webkit.MimeTypeMap;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Easy to use image picker. Use one of {@code pickFrom...} methods to trigger image pick and
  * get result in {@code onActivityResult} method of the same Activity or Fragment.
  *
  * @see <a href="https://github.com/aviadmini/quickimagepick">GitHub repo</a>
+ * @since v1.0.0
+ * @deprecated use {@link QiPick}. Even though it contains latest fixes, this class will be removed in one of next releases
  */
-@SuppressWarnings("unused")
-@SuppressLint("NewApi")
+@SuppressWarnings({"unused", "deprecation"})
+@Deprecated
 public class QuickImagePick {
 
-    private static final String PREFS_REQUEST_TYPE                 = "qip_req_type";
-    private static final String PREFS_LAST_CAMERA_URI              = "qip_last_cam_uri";
-    private static final String PREFS_CAMERA_DIR                   = "qip_cam_dir";
-    private static final String PREFS_ALLOWED_MIME_TYPE_PRE_KITKAT = "qip_allowed_mime_type_pre_kitkat";
-    private static final String PREFS_ALLOWED_MIME_TYPES           = "qip_allowed_mime_types";
-    private static final String PREFS_ALLOW_LOCAL_CONTENT_ONLY     = "qip_local_content_only";
+    public static final String ERR_CAMERA_NULL_RESULT         = QiPick.ERR_CAMERA_NULL_RESULT;
+    public static final String ERR_CAMERA_CANNOT_WRITE_OUTPUT = QiPick.ERR_CAMERA_CANNOT_WRITE_OUTPUT;
+    public static final String ERR_GALLERY_NULL_RESULT        = QiPick.ERR_GALLERY_NULL_RESULT;
+    public static final String ERR_DOCS_NULL_RESULT           = QiPick.ERR_DOCS_NULL_RESULT;
 
-    private static final int REQ_CAMERA    = 4001;
-    private static final int REQ_GALLERY   = 4002;
-    private static final int REQ_DOCUMENTS = 4003;
-    private static final int REQ_MULTIPLE  = 4004;
-
-    public static final String ERR_CAMERA_NULL_RESULT         = "Camera returned bad/null data";
-    public static final String ERR_CAMERA_CANNOT_WRITE_OUTPUT = "App cannot write to specified camera output directory";
-    public static final String ERR_GALLERY_NULL_RESULT        = "Gallery returned bad/null data";
-    public static final String ERR_DOCS_NULL_RESULT           = "Documents returned bad/null data";
-
-    private static final String MIME_TYPE_IMAGES_ALL = "image/*";
-    public static final  String MIME_TYPE_IMAGE_BMP  = "image/bmp";
-    public static final  String MIME_TYPE_IMAGE_GIF  = "image/gif";
-    public static final  String MIME_TYPE_IMAGE_JPEG = "image/jpeg";
-    public static final  String MIME_TYPE_IMAGE_PNG  = "image/png";
-    public static final  String MIME_TYPE_IMAGE_WEBP = "image/webp";
-
-    private static final boolean API_19 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
-    private static final boolean API_23 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+    public static final String MIME_TYPE_IMAGE_BMP  = QiPick.MIME_TYPE_IMAGE_BMP;
+    public static final String MIME_TYPE_IMAGE_GIF  = QiPick.MIME_TYPE_IMAGE_GIF;
+    public static final String MIME_TYPE_IMAGE_JPEG = QiPick.MIME_TYPE_IMAGE_JPEG;
+    public static final String MIME_TYPE_IMAGE_PNG  = QiPick.MIME_TYPE_IMAGE_PNG;
+    public static final String MIME_TYPE_IMAGE_WEBP = QiPick.MIME_TYPE_IMAGE_WEBP;
 
     // ==== CAMERA ==== //
 
@@ -90,7 +68,7 @@ public class QuickImagePick {
             return false;
         }
 
-        pActivity.startActivityForResult(intent, REQ_CAMERA);
+        pActivity.startActivityForResult(intent, QiPick.REQ_CAMERA);
 
         return true;
     }
@@ -123,7 +101,7 @@ public class QuickImagePick {
             return false;
         }
 
-        pFragment.startActivityForResult(intent, REQ_CAMERA);
+        pFragment.startActivityForResult(intent, QiPick.REQ_CAMERA);
 
         return true;
     }
@@ -143,9 +121,10 @@ public class QuickImagePick {
      * @param pFragment    fragment which gets the result after pick flow
      * @param pRequestType request type (for different pick types), returned in callback
      */
+    @SuppressLint("NewApi")
     public static boolean pickFromCamera(@NonNull final android.app.Fragment pFragment, final int pRequestType) {
 
-        final Context context = API_23 ? pFragment.getContext() : pFragment.getActivity();
+        final Context context = QiPick.API_23 ? pFragment.getContext() : pFragment.getActivity();
 
         final File file = createImageFile(context);
         if (file == null) {
@@ -156,7 +135,7 @@ public class QuickImagePick {
             return false;
         }
 
-        pFragment.startActivityForResult(intent, REQ_CAMERA);
+        pFragment.startActivityForResult(intent, QiPick.REQ_CAMERA);
 
         return true;
     }
@@ -175,8 +154,8 @@ public class QuickImagePick {
 
         PreferenceManager.getDefaultSharedPreferences(pContext)
                          .edit()
-                         .putInt(PREFS_REQUEST_TYPE, pRequestType)
-                         .putString(PREFS_LAST_CAMERA_URI, pOutputFileUri.toString())
+                         .putInt(QiPick.PREFS_REQUEST_TYPE, pRequestType)
+                         .putString(QiPick.PREFS_LAST_CAMERA_URI, pOutputFileUri.toString())
                          .apply();
 
         final Intent result = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -193,12 +172,13 @@ public class QuickImagePick {
             return null;
         }
 
-        final String fileName = UUID.randomUUID()
-                                    .toString();
+        // Assuming JPG output seems to be a correct way
+        final String fileName = System.nanoTime() + ".jpg";
 
         return new File(dir, fileName);
     }
 
+    @NonNull
     private static Uri createImageUri(@NonNull final Context pContext, @NonNull final File pFile) {
         return FileProvider.getUriForFile(pContext, pContext.getPackageName() + ".qip_file_provider", pFile);
     }
@@ -215,7 +195,7 @@ public class QuickImagePick {
 
         final Intent intent = prepareGalleryIntent(pActivity, pRequestType);
 
-        pActivity.startActivityForResult(intent, REQ_GALLERY);
+        pActivity.startActivityForResult(intent, QiPick.REQ_GALLERY);
 
     }
 
@@ -238,7 +218,7 @@ public class QuickImagePick {
 
         final Intent intent = prepareGalleryIntent(pFragment.getContext(), pRequestType);
 
-        pFragment.startActivityForResult(intent, REQ_GALLERY);
+        pFragment.startActivityForResult(intent, QiPick.REQ_GALLERY);
 
     }
 
@@ -257,11 +237,12 @@ public class QuickImagePick {
      * @param pFragment    fragment which gets the result after pick flow
      * @param pRequestType request type (for different pick types), returned in callback
      */
+    @SuppressLint("NewApi")
     public static void pickFromGallery(@NonNull final android.app.Fragment pFragment, final int pRequestType) {
 
-        final Intent intent = prepareGalleryIntent(API_23 ? pFragment.getContext() : pFragment.getActivity(), pRequestType);
+        final Intent intent = prepareGalleryIntent(QiPick.API_23 ? pFragment.getContext() : pFragment.getActivity(), pRequestType);
 
-        pFragment.startActivityForResult(intent, REQ_GALLERY);
+        pFragment.startActivityForResult(intent, QiPick.REQ_GALLERY);
 
     }
 
@@ -279,11 +260,10 @@ public class QuickImagePick {
 
         PreferenceManager.getDefaultSharedPreferences(pContext)
                          .edit()
-                         .putInt(PREFS_REQUEST_TYPE, pRequestType)
+                         .putInt(QiPick.PREFS_REQUEST_TYPE, pRequestType)
                          .apply();
 
         final Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
 
         setIntentLocalContentOnly(pContext, intent);
 
@@ -295,7 +275,7 @@ public class QuickImagePick {
     // ==== DOCUMENTS ==== //
 
     /**
-     * Pick image using Documents app (or file manager on pre-KitKat)
+     * Pick image using Documents app or content manager (Documents not available before KitKat)
      *
      * @param pActivity    activity which gets the result after pick flow
      * @param pRequestType request type (for different pick types), returned in callback
@@ -304,12 +284,12 @@ public class QuickImagePick {
 
         final Intent intent = prepareDocumentsIntent(pActivity, pRequestType);
 
-        pActivity.startActivityForResult(intent, REQ_DOCUMENTS);
+        pActivity.startActivityForResult(intent, QiPick.REQ_DOCUMENTS);
 
     }
 
     /**
-     * Pick image using Documents app (or file manager on pre-KitKat)
+     * Pick image using Documents app or content manager (Documents not available before KitKat)
      *
      * @param pActivity activity which gets the result after pick flow
      */
@@ -318,7 +298,7 @@ public class QuickImagePick {
     }
 
     /**
-     * Pick image using Documents app (or file manager on pre-KitKat)
+     * Pick image using Documents app or content manager (Documents not available before KitKat)
      *
      * @param pFragment    support fragment which gets the result after pick flow
      * @param pRequestType request type (for different pick types), returned in callback
@@ -327,12 +307,12 @@ public class QuickImagePick {
 
         final Intent intent = prepareDocumentsIntent(pFragment.getContext(), pRequestType);
 
-        pFragment.startActivityForResult(intent, REQ_DOCUMENTS);
+        pFragment.startActivityForResult(intent, QiPick.REQ_DOCUMENTS);
 
     }
 
     /**
-     * Pick image using Documents app (or file manager on pre-KitKat)
+     * Pick image using Documents app or content manager (Documents not available before KitKat)
      *
      * @param pFragment support fragment which gets the result after pick flow
      */
@@ -341,21 +321,22 @@ public class QuickImagePick {
     }
 
     /**
-     * Pick image using Documents app (or file manager on pre-KitKat)
+     * Pick image using Documents app or content manager (Documents not available before KitKat)
      *
      * @param pFragment    fragment which gets the result after pick flow
      * @param pRequestType request type (for different pick types), returned in callback
      */
+    @SuppressLint("NewApi")
     public static void pickFromDocuments(@NonNull final android.app.Fragment pFragment, final int pRequestType) {
 
-        final Intent intent = prepareDocumentsIntent(API_23 ? pFragment.getContext() : pFragment.getActivity(), pRequestType);
+        final Intent intent = prepareDocumentsIntent(QiPick.API_23 ? pFragment.getContext() : pFragment.getActivity(), pRequestType);
 
-        pFragment.startActivityForResult(intent, REQ_DOCUMENTS);
+        pFragment.startActivityForResult(intent, QiPick.REQ_DOCUMENTS);
 
     }
 
     /**
-     * Pick image using Documents app (or file manager on pre-KitKat)
+     * Pick image using Documents app or content manager (Documents not available before KitKat)
      *
      * @param pFragment fragment which gets the result after pick flow
      */
@@ -369,7 +350,7 @@ public class QuickImagePick {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(pContext);
 
         sharedPreferences.edit()
-                         .putInt(PREFS_REQUEST_TYPE, pRequestType)
+                         .putInt(QiPick.PREFS_REQUEST_TYPE, pRequestType)
                          .apply();
 
         final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -401,7 +382,7 @@ public class QuickImagePick {
             return false;
         }
 
-        pActivity.startActivityForResult(intent, REQ_MULTIPLE);
+        pActivity.startActivityForResult(intent, QiPick.REQ_MULTIPLE);
 
         return true;
     }
@@ -436,7 +417,7 @@ public class QuickImagePick {
             return false;
         }
 
-        pFragment.startActivityForResult(intent, REQ_MULTIPLE);
+        pFragment.startActivityForResult(intent, QiPick.REQ_MULTIPLE);
 
         return true;
     }
@@ -463,16 +444,17 @@ public class QuickImagePick {
      * @param pPickSources sources offered to user to pick with
      * @return true if process started successfully
      */
+    @SuppressLint("NewApi")
     public static boolean pickFromMultipleSources(@NonNull final android.app.Fragment pFragment, final int pRequestType,
                                                   @Nullable final String pTitle, @NonNull final PickSource... pPickSources) {
 
-        final Intent intent = prepareMultipleSourcesIntent(API_23 ? pFragment.getContext() : pFragment.getActivity(), pRequestType, pTitle,
-                pPickSources);
+        final Intent intent = prepareMultipleSourcesIntent(QiPick.API_23 ? pFragment.getContext() : pFragment.getActivity(), pRequestType,
+                pTitle, pPickSources);
         if (intent == null) {
             return false;
         }
 
-        pFragment.startActivityForResult(intent, REQ_MULTIPLE);
+        pFragment.startActivityForResult(intent, QiPick.REQ_MULTIPLE);
 
         return true;
     }
@@ -622,10 +604,9 @@ public class QuickImagePick {
      * @return true if result was accepted by QuickImagePick
      */
     public static boolean handleActivityResult(@NonNull final Fragment pFragment, final int pRequestCode, final int pResultCode,
-                                               @Nullable final Intent pData, @NonNull final Callback pCallback) {
+                                               @Nullable final Intent pData, @NonNull final PickCallback pCallback) {
         return handleActivityResult(pFragment.getContext(), pRequestCode, pResultCode, pData, pCallback);
     }
-
 
     /**
      * Use this in {@code onActivityResult(...)} of Activity or Fragment to retrieve image {@link Uri}
@@ -637,9 +618,11 @@ public class QuickImagePick {
      * @param pCallback    result callback
      * @return true if result was accepted by QuickImagePick
      */
+    @SuppressLint("NewApi")
     public static boolean handleActivityResult(@NonNull final android.app.Fragment pFragment, final int pRequestCode, final int pResultCode,
-                                               @Nullable final Intent pData, @NonNull final Callback pCallback) {
-        return handleActivityResult(API_23 ? pFragment.getContext() : pFragment.getActivity(), pRequestCode, pResultCode, pData, pCallback);
+                                               @Nullable final Intent pData, @NonNull final PickCallback pCallback) {
+        return handleActivityResult(QiPick.API_23 ? pFragment.getContext() : pFragment.getActivity(), pRequestCode, pResultCode, pData,
+                pCallback);
     }
 
     /**
@@ -653,113 +636,16 @@ public class QuickImagePick {
      * @param pData        Intent from {@code onActivityResult(...)} parameter
      * @param pCallback    result callback
      * @return true if result was accepted by QuickImagePick
-     * @see #handleActivityResult(Fragment, int, int, Intent, Callback)
-     * @see #handleActivityResult(android.app.Fragment, int, int, Intent, Callback)
+     * @see #handleActivityResult(Fragment, int, int, Intent, PickCallback)
+     * @see #handleActivityResult(android.app.Fragment, int, int, Intent, PickCallback)
      */
+    @SuppressLint("NewApi")
     public static boolean handleActivityResult(@NonNull final Context pContext, final int pRequestCode, final int pResultCode,
-                                               @Nullable final Intent pData, @NonNull final Callback pCallback) {
-
-        if (pRequestCode != REQ_CAMERA && pRequestCode != REQ_GALLERY && pRequestCode != REQ_DOCUMENTS && pRequestCode != REQ_MULTIPLE) {
-            return false;
-        }
-
-        final int requestType = PreferenceManager.getDefaultSharedPreferences(pContext)
-                                                 .getInt(PREFS_REQUEST_TYPE, 0);
-
-        if (pResultCode == Activity.RESULT_OK) {
-
-            if (pRequestCode == REQ_DOCUMENTS) {
-                handleResultFromDocuments(pContext, requestType, pCallback, pData);
-            } else if (pRequestCode == REQ_GALLERY) {
-                handleResultFromGallery(pContext, requestType, pCallback, pData);
-            } else if (pRequestCode == REQ_CAMERA) {
-                handleResultFromCamera(pContext, requestType, pCallback);
-            } else if (pData == null || pData.getData() == null) {
-                handleResultFromCamera(pContext, requestType, pCallback);
-            } else {
-                handleResultFromDocuments(pContext, requestType, pCallback, pData);
-            }
-
-        } else {
-
-            if (pRequestCode == REQ_DOCUMENTS) {
-                pCallback.onCancel(PickSource.DOCUMENTS, requestType);
-            } else if (pRequestCode == REQ_GALLERY) {
-                pCallback.onCancel(PickSource.GALLERY, requestType);
-            } else if (pRequestCode == REQ_CAMERA) {
-
-                pCallback.onCancel(PickSource.CAMERA, requestType);
-
-                deleteLastCameraPic(pContext);
-
-            } else {
-
-                if (pData == null || pData.getData() == null) {
-
-                    pCallback.onCancel(PickSource.CAMERA, requestType);
-
-                    deleteLastCameraPic(pContext);
-
-                } else if (DocumentsContract.isDocumentUri(pContext, pData.getData())) {
-                    pCallback.onCancel(PickSource.DOCUMENTS, requestType);
-                } else {
-                    pCallback.onCancel(PickSource.GALLERY, requestType);
-                }
-
-            }
-
-        }
-
-        return true;
+                                               @Nullable final Intent pData, @NonNull final PickCallback pCallback) {
+        return QiPick.handleActivityResult(pContext, pRequestCode, pResultCode, pData, pCallback);
     }
 
-    private static void handleResultFromCamera(@NonNull final Context pContext, final int pRequestType, @NonNull final Callback pCallback) {
-
-        final File cameraPicsDir = getCameraPicsDirectory(pContext);
-        if (cameraPicsDir == null || !cameraPicsDir.canWrite()) {
-
-            pCallback.onError(PickSource.CAMERA, pRequestType, ERR_CAMERA_CANNOT_WRITE_OUTPUT);
-
-            return;
-        }
-
-        final Uri pictureUri = getLastCameraUri(pContext);
-
-        if (pictureUri == null) {
-            pCallback.onError(PickSource.CAMERA, pRequestType, ERR_CAMERA_NULL_RESULT);
-        } else {
-            pCallback.onImagePicked(PickSource.GALLERY, pRequestType, pictureUri);
-        }
-
-    }
-
-    private static void handleResultFromGallery(@NonNull final Context pContext, final int pRequestType, @NonNull final Callback pCallback,
-                                                @Nullable final Intent pData) {
-
-        final Uri pictureUri = pData == null ? null : pData.getData();
-
-        if (pictureUri == null) {
-            pCallback.onError(PickSource.GALLERY, pRequestType, ERR_GALLERY_NULL_RESULT);
-        } else {
-            pCallback.onImagePicked(PickSource.GALLERY, pRequestType, pictureUri);
-        }
-
-    }
-
-    private static void handleResultFromDocuments(@NonNull final Context pContext, final int pRequestType, @NonNull final Callback pCallback,
-                                                  @Nullable final Intent pData) {
-
-        final Uri pictureUri = pData == null ? null : pData.getData();
-
-        if (pictureUri == null) {
-            pCallback.onError(PickSource.DOCUMENTS, pRequestType, ERR_DOCS_NULL_RESULT);
-        } else {
-            pCallback.onImagePicked(PickSource.DOCUMENTS, pRequestType, pictureUri);
-        }
-
-    }
-
-    // ==== CAMERA DIR ====//
+    // ==== CAMERA DIR ==== //
 
     /**
      * @param pContext app {@link Context}
@@ -767,18 +653,7 @@ public class QuickImagePick {
      * By default it's a pictures directory on external storage.
      */
     public static File getCameraPicsDirectory(@NonNull final Context pContext) {
-
-        final String camDirPath = PreferenceManager.getDefaultSharedPreferences(pContext)
-                                                   .getString(PREFS_CAMERA_DIR, null);
-
-        final File dir = camDirPath == null ? pContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES) : new File(camDirPath);
-
-        if (dir != null) {
-            //noinspection ConstantConditions,ResultOfMethodCallIgnored
-            dir.mkdirs();
-        }
-
-        return dir;
+        return QiPick.getCameraPicsDirectory(pContext);
     }
 
     /**
@@ -794,12 +669,12 @@ public class QuickImagePick {
         if (pDirPath == null) {
             PreferenceManager.getDefaultSharedPreferences(pContext)
                              .edit()
-                             .remove(PREFS_CAMERA_DIR)
+                             .remove(QiPick.PREFS_CAMERA_DIR)
                              .apply();
         } else {
             PreferenceManager.getDefaultSharedPreferences(pContext)
                              .edit()
-                             .putString(PREFS_CAMERA_DIR, pDirPath)
+                             .putString(QiPick.PREFS_CAMERA_DIR, pDirPath)
                              .apply();
         }
 
@@ -812,11 +687,7 @@ public class QuickImagePick {
      * @return Uri of last camera pic. Not necessarily valid content
      */
     public static Uri getLastCameraUri(@NonNull final Context pContext) {
-
-        final String uriString = PreferenceManager.getDefaultSharedPreferences(pContext)
-                                                  .getString(PREFS_LAST_CAMERA_URI, null);
-
-        return uriString == null ? null : Uri.parse(uriString);
+        return QiPick.getLastCameraUri(pContext);
     }
 
     /**
@@ -824,89 +695,82 @@ public class QuickImagePick {
      * @return number of rows deleted from content provider
      */
     public static int deleteLastCameraPic(@NonNull final Context pContext) {
-
-        final Uri uri = getLastCameraUri(pContext);
-        if (uri != null) {
-            return deleteContent(pContext, uri);
-        }
-        return 0;
+        return QiPick.deleteLastCameraPic(pContext);
     }
 
     // ==== ALLOWED MIME TYPES ==== //
 
     /**
-     * Note: has no effect on pre-KitKat (API 19-)
+     * Note: has no effect on pre-KitKat (API 19)
      *
      * @param pContext          app {@link Context}
      * @param pAllowedMimeTypes MIME types of files that will be allowed to be picked from gallery/documents
      */
+    @SuppressLint("NewApi")
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
     public static void setAllowedMimeTypes(@NonNull final Context pContext, @NonNull final String... pAllowedMimeTypes) {
 
-        if (!API_19) {
+        if (!QiPick.API_19) {
             return;
         }
 
         PreferenceManager.getDefaultSharedPreferences(pContext)
                          .edit()
-                         .putStringSet(PREFS_ALLOWED_MIME_TYPES, new HashSet<>(Arrays.asList(pAllowedMimeTypes)))
+                         .putStringSet(QiPick.PREFS_ALLOWED_MIME_TYPES_KITKAT, new HashSet<>(Arrays.asList(pAllowedMimeTypes)))
                          .apply();
 
     }
 
     /**
-     * Note: has no effect on pre-KitKat (API 19-)
+     * Note: has no effect on pre-KitKat (API 19)
      *
      * @param pContext          app {@link Context}
      * @param pAllowedMimeTypes MIME types of files that will be allowed to be picked from gallery/documents
      */
+    @SuppressLint("NewApi")
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
     public static void setAllowedMimeTypes(@NonNull final Context pContext, @NonNull final List<String> pAllowedMimeTypes) {
 
-        if (!API_19) {
+        if (!QiPick.API_19) {
             return;
         }
 
         PreferenceManager.getDefaultSharedPreferences(pContext)
                          .edit()
-                         .putStringSet(PREFS_ALLOWED_MIME_TYPES, new HashSet<>(pAllowedMimeTypes))
+                         .putStringSet(QiPick.PREFS_ALLOWED_MIME_TYPES_KITKAT, new HashSet<>(pAllowedMimeTypes))
                          .apply();
     }
 
     /**
-     * Note: has no effect on pre-KitKat (API 19-)
+     * Note: has no effect on pre-KitKat (API 19)
      *
      * @param pContext          app {@link Context}
      * @param pAllowedMimeTypes MIME types of files that will be allowed to be picked from gallery/documents
      */
+    @SuppressLint("NewApi")
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
     public static void setAllowedMimeTypes(@NonNull final Context pContext, @NonNull final Set<String> pAllowedMimeTypes) {
 
-        if (!API_19) {
+        if (!QiPick.API_19) {
             return;
         }
 
         PreferenceManager.getDefaultSharedPreferences(pContext)
                          .edit()
-                         .putStringSet(PREFS_ALLOWED_MIME_TYPES, pAllowedMimeTypes)
+                         .putStringSet(QiPick.PREFS_ALLOWED_MIME_TYPES_KITKAT, pAllowedMimeTypes)
                          .apply();
 
     }
 
     /**
-     * Note: has no effect on KitKat onwards (API 19+)
-     *
      * @param pContext         app {@link Context}
      * @param pAllowedMimeType MIME type of files that will be allowed to be picked from gallery/documents
      */
     public static void setAllowedMimeType(@NonNull final Context pContext, @NonNull final String pAllowedMimeType) {
-
-        if (API_19) {
-            return;
-        }
-
         PreferenceManager.getDefaultSharedPreferences(pContext)
                          .edit()
-                         .putString(PREFS_ALLOWED_MIME_TYPE_PRE_KITKAT, pAllowedMimeType)
+                         .putString(QiPick.PREFS_ALLOWED_MIME_TYPE, pAllowedMimeType)
                          .apply();
-
     }
 
     /**
@@ -917,53 +781,62 @@ public class QuickImagePick {
     public static void setAllImageMimeTypesAllowed(@NonNull final Context pContext) {
         PreferenceManager.getDefaultSharedPreferences(pContext)
                          .edit()
-                         .remove(PREFS_ALLOWED_MIME_TYPES)
+                         .remove(QiPick.PREFS_ALLOWED_MIME_TYPES_KITKAT)
+                         .remove(QiPick.PREFS_ALLOWED_MIME_TYPE)
                          .apply();
+    }
+
+    /**
+     * @param pContext app {@link Context}
+     * @return a set with all allowed mime types (KitKat and later)
+     */
+    @SuppressLint("NewApi")
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
+    public static Set<String> getAllowedMimeTypes(@NonNull final Context pContext) {
+
+        final Set<String> set = PreferenceManager.getDefaultSharedPreferences(pContext)
+                                                 .getStringSet(QiPick.PREFS_ALLOWED_MIME_TYPES_KITKAT, new HashSet<String>(1));
+
+        if (set.size() == 0) {
+            set.add(QiPick.MIME_TYPE_IMAGES_ALL);
+        }
+
+        return set;
     }
 
     /**
      * @param pContext app {@link Context}
      * @return a set with all allowed mime types
      */
-    public static Set<String> getAllowedMimeTypes(@NonNull final Context pContext) {
-
-        final Set<String> set = PreferenceManager.getDefaultSharedPreferences(pContext)
-                                                 .getStringSet(PREFS_ALLOWED_MIME_TYPES, new HashSet<String>(1));
-
-        if (set.size() == 0) {
-            set.add(MIME_TYPE_IMAGES_ALL);
-        }
-
-        return set;
+    public static String getAllowedMimeType(@NonNull final Context pContext) {
+        return PreferenceManager.getDefaultSharedPreferences(pContext)
+                                .getString(QiPick.PREFS_ALLOWED_MIME_TYPE, QiPick.MIME_TYPE_IMAGES_ALL);
     }
 
     // ==== INTENT EXTRAS ==== //
 
+    @SuppressLint("NewApi")
     private static void setIntentLocalContentOnly(@NonNull final Context pContext, @NonNull final Intent pIntent) {
         pIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, PreferenceManager.getDefaultSharedPreferences(pContext)
-                                                                   .getBoolean(PREFS_ALLOW_LOCAL_CONTENT_ONLY, false));
+                                                                   .getBoolean(QiPick.PREFS_ALLOW_LOCAL_CONTENT_ONLY, false));
     }
 
+    @SuppressLint("NewApi")
     private static void setIntentAllowedMimeTypes(@NonNull final Context pContext, @NonNull final Intent pIntent) {
 
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(pContext);
 
-        if (API_19) {
+        pIntent.setType(sharedPreferences.getString(QiPick.PREFS_ALLOWED_MIME_TYPE, QiPick.MIME_TYPE_IMAGES_ALL));
 
-            pIntent.setType(MIME_TYPE_IMAGES_ALL);
+        if (QiPick.API_19) {
 
-            final Set<String> allowedMimeTypes = sharedPreferences.getStringSet(PREFS_ALLOWED_MIME_TYPES, null);
+            final Set<String> allowedMimeTypes = sharedPreferences.getStringSet(QiPick.PREFS_ALLOWED_MIME_TYPES_KITKAT, null);
             if (allowedMimeTypes != null && allowedMimeTypes.size() != 0) {
 
                 final String[] types = allowedMimeTypes.toArray(new String[allowedMimeTypes.size()]);
                 pIntent.putExtra(Intent.EXTRA_MIME_TYPES, types);
 
             }
-
-        } else {
-
-            final String allowedMimeType = sharedPreferences.getString(PREFS_ALLOWED_MIME_TYPE_PRE_KITKAT, MIME_TYPE_IMAGES_ALL);
-            pIntent.setType(allowedMimeType);
 
         }
 
@@ -972,133 +845,17 @@ public class QuickImagePick {
     // ==== LOCAL ONLY ==== //
 
     /**
+     * Note: only works for Honeycomb and later (API 11+)
+     *
      * @param pContext        app {@link Context}
      * @param pAllowLocalOnly pass true to not allow remote content
      */
+    @RequiresApi(Build.VERSION_CODES.HONEYCOMB)
     public static void allowOnlyLocalContent(@NonNull final Context pContext, final boolean pAllowLocalOnly) {
         PreferenceManager.getDefaultSharedPreferences(pContext)
                          .edit()
-                         .putBoolean(PREFS_ALLOW_LOCAL_CONTENT_ONLY, pAllowLocalOnly)
+                         .putBoolean(QiPick.PREFS_ALLOW_LOCAL_CONTENT_ONLY, pAllowLocalOnly)
                          .apply();
-    }
-
-    // ==== URI OPS ==== //
-
-    /**
-     * @param pContext app {@link Context}
-     * @param pUri     uri to get MIME type for
-     * @return MIME type for {@link Uri} content or null if cannot determine
-     */
-    @Nullable
-    public static String getMimeType(@NonNull final Context pContext, @NonNull final Uri pUri) {
-
-        // first try to get it from content resolver
-        final String contentResolverChoice = pContext.getContentResolver()
-                                                     .getType(pUri);
-
-        // if content resolver fails and it's a file Uri then try guessing by extension
-        if (contentResolverChoice == null && ContentResolver.SCHEME_FILE.equals(pUri.getScheme())) {
-
-            final String extension = MimeTypeMap.getFileExtensionFromUrl(pUri.toString());
-
-            return extension == null ? null : MimeTypeMap.getSingleton()
-                                                         .getMimeTypeFromExtension(extension);
-        } else {
-            return contentResolverChoice;
-        }
-
-    }
-
-    /**
-     * @param pContext app {@link Context}
-     * @param pUri     uri to get MIME type for
-     * @return most common file extension for {@link Uri} content or null if cannot determine
-     */
-    public static String getFileExtension(@NonNull final Context pContext, @NonNull final Uri pUri) {
-
-        // first try to get extension from mime type
-        final String mimeType = pContext.getContentResolver()
-                                        .getType(pUri);
-
-        if (mimeType != null) {
-            return MimeTypeMap.getSingleton()
-                              .getExtensionFromMimeType(mimeType);
-        } else {
-            // if content resolver fails then try to get it from url
-            return MimeTypeMap.getFileExtensionFromUrl(pUri.toString());
-        }
-
-    }
-
-    /**
-     * Saves Uri content to a File. Not recommended to use on main thread
-     *
-     * @param pContext app {@link Context}
-     * @param pUri     Uri to get content from
-     * @param pFile    File to which content will be saved. Caller should have permission to write to it
-     * @throws IOException if the provided Uri could not be opened or
-     *                     if the provided File could not be opened for writing or if writing operation failed
-     */
-    @UiThread
-    public static void saveContentToFile(@NonNull final Context pContext, @NonNull final Uri pUri, @NonNull final File pFile)
-            throws RuntimeException, IOException {
-
-        FileOutputStream fos = null;
-        InputStream is = null;
-
-        try {
-
-            is = pContext.getContentResolver()
-                         .openInputStream(pUri);
-
-            if (is != null) {
-
-                fos = new FileOutputStream(pFile);
-
-                final byte[] buffer = new byte[1024];
-                int len;
-                while ((len = is.read(buffer)) != -1) {
-                    fos.write(buffer, 0, len);
-                }
-
-            } else {
-                throw new IOException("ContentResolver returned null InputStream for the File");
-            }
-
-        } finally {
-
-            if (is != null) {
-
-                try {
-                    is.close();
-                } catch (final IOException e) {
-                    // silently ignore
-                }
-
-            }
-
-            if (fos != null) {
-
-                try {
-                    fos.close();
-                } catch (final IOException e) {
-                    // silently ignore
-                }
-
-            }
-
-        }
-
-    }
-
-    /**
-     * @param pContext app {@link Context}
-     * @param pUri     uri of content that will be deleted
-     * @return number of rows deleted from content provider
-     */
-    public static int deleteContent(@NonNull final Context pContext, @NonNull final Uri pUri) {
-        return pContext.getContentResolver()
-                       .delete(pUri, null, null);
     }
 
     // ==== //
@@ -1110,37 +867,11 @@ public class QuickImagePick {
 
     /**
      * Callback for {@code handleActivityResult(...)} methods
+     *
+     * @deprecated use {@link PickCallback}. This interface will be removed in one of next releases
      */
-    public interface Callback {
-
-        /**
-         * Triggered when an image {@link Uri} was successfully retrieved
-         *
-         * @param pPickSource  source from which image {@link Uri} was retrieved
-         * @param pRequestType request type that was (optionally) set when starting pick flow
-         * @param pImageUri    {@link Uri} of the image
-         */
-        void onImagePicked(@NonNull final PickSource pPickSource, final int pRequestType, @NonNull final Uri pImageUri);
-
-        /**
-         * Triggered when an error occurred in process of image picking
-         *
-         * @param pPickSource  source from which image {@link Uri} was retrieved
-         * @param pRequestType request type that was (optionally) set when starting pick flow
-         * @param pErrorString error string describing the error. One of public {@code ERR_} constants in {@link QuickImagePick} class
-         */
-        void onError(@NonNull final PickSource pPickSource, final int pRequestType, @NonNull final String pErrorString);
-
-        /**
-         * Triggered when picking flow was cancelled (mostly by user)
-         *
-         * @param pPickSource  source from which image {@link Uri} was retrieved.
-         *                     Value might be inaccurate when multiple pick sources are requested and
-         *                     user has not yet picked an exact one (from chooser).
-         * @param pRequestType request type that was (optionally) set when starting pick flow
-         */
-        void onCancel(@NonNull final PickSource pPickSource, final int pRequestType);
-
-    }
+    @Deprecated
+    public interface Callback
+            extends PickCallback {}
 
 }
