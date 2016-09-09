@@ -65,6 +65,8 @@ public class PickRequest {
     @Nullable
     private String mLastCameraUriString = null;
 
+    private boolean multiPick = false;
+
     PickRequest(@NonNull final Activity pActivity) {
 
         this.mContext = pActivity;
@@ -270,6 +272,15 @@ public class PickRequest {
     }
 
     /**
+     * Allows the user to select multiple pictures
+     * @param multiPick can we select multiple?
+     * @return
+     */
+    public PickRequest multiPick(final boolean multiPick) {
+        this.multiPick = multiPick;
+        return this;
+    }
+    /**
      * @return allowed MIME type of files to be picked
      */
     @NonNull
@@ -319,6 +330,7 @@ public class PickRequest {
 
         final Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         galleryIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, this.mAllowOnlyLocalContent);
+        galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiPick);
 
         this.setIntentAllowedMimeTypes(galleryIntent);
 
@@ -343,7 +355,7 @@ public class PickRequest {
         final Intent docsIntent = new Intent(Intent.ACTION_GET_CONTENT);
         docsIntent.addCategory(Intent.CATEGORY_OPENABLE);
         docsIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, this.mAllowOnlyLocalContent);
-
+        docsIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiPick);
         this.setIntentAllowedMimeTypes(docsIntent);
 
         return docsIntent;
@@ -432,6 +444,7 @@ public class PickRequest {
                     final Intent intent = new Intent(cameraIntent);
                     intent.setComponent(new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name));
                     intent.setPackage(packageName);
+                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiPick);
                     intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
 
                     cameraIntents.add(intent);
@@ -459,6 +472,7 @@ public class PickRequest {
                 final Intent intent = new Intent(galleryIntent);
                 intent.setComponent(new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name));
                 intent.setPackage(packageName);
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiPick);
 
                 galleryIntents.add(intent);
 
@@ -479,7 +493,9 @@ public class PickRequest {
         }
 
         // create chooser intent
-        final Intent result = Intent.createChooser(new Intent(), pTitle);
+        Intent baseIntent = resultIntents.remove(0);
+
+        final Intent result = Intent.createChooser(baseIntent, pTitle);
         result.putExtra(Intent.EXTRA_INITIAL_INTENTS, resultIntents.toArray(new Parcelable[resultIntents.size()]));
 
         return this.triggerPick(result, QiPick.REQ_MULTIPLE);

@@ -2,6 +2,7 @@ package com.aviadmini.quickimagepick;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -13,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * QuickImagePick entry point in v2.x
@@ -51,6 +53,7 @@ public class QiPick {
 
     static final boolean API_19 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
     static final boolean API_23 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+    static final boolean API_16 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN;
 
     private QiPick() {}
 
@@ -138,13 +141,19 @@ public class QiPick {
 
         if (pResultCode == Activity.RESULT_OK) {
 
+            boolean clipData = false;
+
+            if (API_16 == true && pData != null) {
+                clipData = pData.getClipData() != null;
+            }
+
             if (pRequestCode == REQ_DOCUMENTS) {
                 handleResultFromDocuments(requestType, pCallback, pData);
             } else if (pRequestCode == REQ_GALLERY) {
                 handleResultFromGallery(requestType, pCallback, pData);
             } else if (pRequestCode == REQ_CAMERA) {
                 handleResultFromCamera(pContext, requestType, pCallback, pData);
-            } else if (pData == null || pData.getData() == null) {
+            } else if ((pData == null || pData.getData() == null) && clipData == false) {
                 handleResultFromCamera(pContext, requestType, pCallback, pData);
             } else {
                 handleResultFromDocuments(requestType, pCallback, pData);
@@ -218,6 +227,21 @@ public class QiPick {
     private static void handleResultFromDocuments(final int pRequestType, @NonNull final PickCallback pCallback, @Nullable final Intent pData) {
 
         final Uri pictureUri = pData == null ? null : pData.getData();
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            if (pData.getClipData() != null) {
+                ClipData clipData = pData.getClipData();
+                ArrayList<Uri> mArrayUri = new ArrayList<Uri>();
+                for (int i = 0; i < clipData.getItemCount(); i++) {
+                    ClipData.Item item = clipData.getItemAt(i);
+                    Uri uri = item.getUri();
+                    mArrayUri.add(uri);
+                }
+                pCallback.onMultiImagePicked(PickSource.DOCUMENTS, pRequestType, mArrayUri);
+                return;
+            }
+        }
 
         if (pictureUri == null) {
             pCallback.onError(PickSource.DOCUMENTS, pRequestType, ERR_DOCS_NULL_RESULT);

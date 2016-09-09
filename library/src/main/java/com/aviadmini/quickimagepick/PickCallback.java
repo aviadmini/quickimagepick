@@ -3,6 +3,8 @@ package com.aviadmini.quickimagepick;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 
+import java.util.ArrayList;
+
 /**
  * Callback for {@code handleActivityResult(...)} methods
  *
@@ -18,6 +20,15 @@ public interface PickCallback {
      * @param pImageUri    {@link Uri} of the image
      */
     void onImagePicked(@NonNull final PickSource pPickSource, final int pRequestType, @NonNull final Uri pImageUri);
+
+
+    /**
+     * Callback to handle multiple images picked.
+     * @param pPickSource  source from which image {@link Uri} was retrieved
+     * @param pRequestType request type that was (optionally) set when starting pick flow
+     * @param images   Array list of {@link Uri} of the image
+     */
+    void onMultiImagePicked(@NonNull final PickSource pPickSource, final int pRequestType, @NonNull final ArrayList<Uri> images);
 
     /**
      * Triggered when an error occurred in process of image picking
