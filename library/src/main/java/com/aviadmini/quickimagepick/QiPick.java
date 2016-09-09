@@ -143,7 +143,7 @@ public class QiPick {
 
             boolean clipData = false;
 
-            if (API_16 == true) {
+            if (API_16 == true && pData != null) {
                 clipData = pData.getClipData() != null;
             }
 
