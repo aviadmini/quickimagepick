@@ -141,13 +141,19 @@ public class QiPick {
 
         if (pResultCode == Activity.RESULT_OK) {
 
+            boolean clipData = false;
+
+            if (API_16 == true) {
+                clipData = pData.getClipData() != null;
+            }
+
             if (pRequestCode == REQ_DOCUMENTS) {
                 handleResultFromDocuments(requestType, pCallback, pData);
             } else if (pRequestCode == REQ_GALLERY) {
                 handleResultFromGallery(requestType, pCallback, pData);
             } else if (pRequestCode == REQ_CAMERA) {
                 handleResultFromCamera(pContext, requestType, pCallback, pData);
-            } else if ((pData == null || pData.getData() == null) && pData.getClipData() == null) {
+            } else if ((pData == null || pData.getData() == null) && clipData == false) {
                 handleResultFromCamera(pContext, requestType, pCallback, pData);
             } else {
                 handleResultFromDocuments(requestType, pCallback, pData);
