@@ -493,7 +493,9 @@ public class PickRequest {
         }
 
         // create chooser intent
-        final Intent result = Intent.createChooser(new Intent(), pTitle);
+        Intent baseIntent = resultIntents.remove(0);
+
+        final Intent result = Intent.createChooser(baseIntent, pTitle);
         result.putExtra(Intent.EXTRA_INITIAL_INTENTS, resultIntents.toArray(new Parcelable[resultIntents.size()]));
 
         return this.triggerPick(result, QiPick.REQ_MULTIPLE);
