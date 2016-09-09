@@ -24,6 +24,7 @@ import com.bumptech.glide.Glide;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
@@ -93,6 +94,10 @@ public class MainActivity
 
         }
 
+        @Override
+        public void onMultiImagePicked(@NonNull PickSource pPickSource, int pRequestType, @NonNull ArrayList<Uri> images) {
+
+        }
     };
 
     @Override
@@ -210,6 +215,7 @@ public class MainActivity
                                           .withAllowedMimeTypes(QiPick.MIME_TYPE_IMAGE_JPEG, QiPick.MIME_TYPE_IMAGE_PNG)
                                           .withCameraPicsDirectory(outDir)
                                           .withRequestType(2)
+                                          .multiPick(true)
                                           .fromMultipleSources("All sources", PickSource.CAMERA, PickSource.DOCUMENTS);
 
                     this.solveTriggerResult(triggerResult);
