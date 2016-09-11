@@ -2,6 +2,7 @@ package com.aviadmini.quickimagepick;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -13,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * QuickImagePick entry point in v2.x
@@ -49,6 +51,7 @@ public class QiPick {
     public static final String MIME_TYPE_IMAGE_PNG  = "image/png";
     public static final String MIME_TYPE_IMAGE_WEBP = "image/webp";
 
+    static final boolean API_18 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2;
     static final boolean API_19 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
     static final boolean API_23 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
 
@@ -144,7 +147,7 @@ public class QiPick {
                 handleResultFromGallery(requestType, pCallback, pData);
             } else if (pRequestCode == REQ_CAMERA) {
                 handleResultFromCamera(pContext, requestType, pCallback, pData);
-            } else if (pData == null || pData.getData() == null) {
+            } else if (pData == null || pData.getData() == null || API_18 && pData.getClipData() == null) {
                 handleResultFromCamera(pContext, requestType, pCallback, pData);
             } else {
                 handleResultFromDocuments(requestType, pCallback, pData);
@@ -164,7 +167,7 @@ public class QiPick {
 
             } else {
 
-                if (pData == null || pData.getData() == null) {
+                if (pData == null || pData.getData() == null || API_18 && pData.getClipData() == null) {
 
                     pCallback.onCancel(PickSource.CAMERA, requestType);
 
@@ -215,12 +218,39 @@ public class QiPick {
 
     }
 
+    @SuppressLint("NewApi")
     private static void handleResultFromDocuments(final int pRequestType, @NonNull final PickCallback pCallback, @Nullable final Intent pData) {
 
         final Uri pictureUri = pData == null ? null : pData.getData();
 
         if (pictureUri == null) {
-            pCallback.onError(PickSource.DOCUMENTS, pRequestType, ERR_DOCS_NULL_RESULT);
+
+            final ClipData clipData = API_18 ? pData != null ? pData.getClipData() : null : null;
+            if (clipData != null) {
+
+                final ArrayList<Uri> uris = new ArrayList<>();
+                for (int i = 0; i < clipData.getItemCount(); i++) {
+
+                    final ClipData.Item item = clipData.getItemAt(i);
+
+                    final Uri uri = item.getUri();
+
+                    if (uri != null) {
+                        uris.add(uri);
+                    }
+
+                }
+
+                if (uris.isEmpty()) {
+                    pCallback.onError(PickSource.DOCUMENTS, pRequestType, ERR_DOCS_NULL_RESULT);
+                } else {
+                    pCallback.onMultipleImagesPicked(pRequestType, uris);
+                }
+
+            } else {
+                pCallback.onError(PickSource.DOCUMENTS, pRequestType, ERR_DOCS_NULL_RESULT);
+            }
+
         } else {
             pCallback.onImagePicked(PickSource.DOCUMENTS, pRequestType, pictureUri);
         }

@@ -1,4 +1,4 @@
-[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-QuickImagePick-blue.svg?style=flat-square)](http://android-arsenal.com/details/1/4248) [![license](https://img.shields.io/github/license/aviadmini/quickimagepick.svg?maxAge=2592000)]()
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-QuickImagePick-blue.svg?style=flat-square)](http://android-arsenal.com/details/1/4248) [![license](https://img.shields.io/github/license/aviadmini/quickimagepick.svg?maxAge=2592000&style=flat-square)]() [![Release](https://jitpack.io/v/aviadmini/quickimagepick.svg?style=flat-square)](https://jitpack.io/#aviadmini/quickimagepick)
 
 # QuickImagePick
 
@@ -19,6 +19,10 @@ API 11+ (Honeycomb):
 
 * Allow only local content to be picked
 
+API 18+ (Jelly Bean MR2):
+
+* Allow picking multiple images via documents pick source (where supported)
+
 API 19+ (KitKat):
 
 * Additionally use Documents app (API 19+) to pick image from gallery, cloud storage etc.
@@ -29,7 +33,7 @@ API 19+ (KitKat):
 * Simple yet powerful API with chained calls
 * Activity, Fragment and support Fragment targets for returning picked result
 * More functionality (numerous useful operations with `Uri`, multiple pick options, etc) 
-* It works with content data type rather than filesystem (solving `FileUriExposedException` issue on Nougat)
+* It works with content data type rather than filesystem (solving `FileUriExposedException` issue on API 24+ target)
 
 ## Dependency
 
@@ -74,6 +78,12 @@ private final PickCallback mCallback = new PickCallback() {
     }
 
     @Override
+    public void onMultipleImagesPicked(final int pRequestType, @NonNull final List<Uri> pImageUris) {
+        // meh whatever, just show first picked ;D
+        this.onImagePicked(PickSource.DOCUMENTS, pRequestType, pImageUris.get(0));
+    }
+
+    @Override
     public void onError(@NonNull final PickSource pPickSource, final int pRequestType, @NonNull final String pErrorString) {
         Log.e(TAG, "Err: " + pErrorString);
     }
@@ -103,6 +113,7 @@ There's a bunch of useful methods to work with `Uri` in `UriUtils`
 
 There's a few extension ideas that might make the library even more useful. 
 
+- v3.0 create PickResult that will encapsulate both PickRequest details and pick results
 - ability to explicitly add file picker(-s) as pick sources
 - tell me more ;)
 

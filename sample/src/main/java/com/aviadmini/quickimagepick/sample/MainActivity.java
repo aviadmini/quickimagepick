@@ -18,12 +18,13 @@ import com.aviadmini.quickimagepick.PickCallback;
 import com.aviadmini.quickimagepick.PickSource;
 import com.aviadmini.quickimagepick.PickTriggerResult;
 import com.aviadmini.quickimagepick.QiPick;
-import com.aviadmini.quickimagepick.QuickImagePick;
 import com.aviadmini.quickimagepick.UriUtils;
 import com.bumptech.glide.Glide;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
@@ -35,8 +36,6 @@ public class MainActivity
     private static final String TAG = "QIP Sample";
 
     private static final String QIP_DIR_NAME = "QuickImagePick Sample";
-
-    private static final boolean USE_DEPRECATED_API = false;
 
     private ImageView mImageView;
 
@@ -72,25 +71,31 @@ public class MainActivity
                 Toast.makeText(getApplicationContext(), "Save complete", Toast.LENGTH_SHORT)
                      .show();
 
-            } catch (IOException pE) {
-                Toast.makeText(getApplicationContext(), "Save failed: " + pE.getMessage(), Toast.LENGTH_SHORT)
+            } catch (final IOException e) {
+                Toast.makeText(getApplicationContext(), "Save failed: " + e.getMessage(), Toast.LENGTH_SHORT)
                      .show();
             }
 
         }
 
         @Override
-        public void onError(@NonNull final PickSource pPickSource, final int pRequestType, @NonNull final String pErrorString) {
+        public void onMultipleImagesPicked(final int pRequestType, @NonNull final List<Uri> pImageUris) {
 
-            Log.e(TAG, "Err: " + pErrorString);
+            Log.i(TAG, "Picked a few images. Uris: " + Arrays.toString(pImageUris.toArray()));
+
+            // meh whatever, just show first picked ;D
+            this.onImagePicked(PickSource.DOCUMENTS, pRequestType, pImageUris.get(0));
 
         }
 
         @Override
+        public void onError(@NonNull final PickSource pPickSource, final int pRequestType, @NonNull final String pErrorString) {
+            Log.e(TAG, "Err: " + pErrorString);
+        }
+
+        @Override
         public void onCancel(@NonNull final PickSource pPickSource, final int pRequestType) {
-
             Log.d(TAG, "Cancel: " + pPickSource.name());
-
         }
 
     };
@@ -117,32 +122,15 @@ public class MainActivity
         btn2.setOnClickListener(listener);
         btn3.setOnClickListener(listener);
 
-        if (USE_DEPRECATED_API) {
-
-            final File outDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), QIP_DIR_NAME);
-            Log.d(TAG, outDir.getAbsolutePath() + ", can write: " + outDir.canWrite());
-            QuickImagePick.setCameraPicsDirectory(this, outDir.getAbsolutePath());
-
-        }
-
     }
 
     @Override
     protected void onActivityResult(final int pRequestCode, final int pResultCode, final Intent pData) {
 
-        if (USE_DEPRECATED_API) {
-
-            if (!QuickImagePick.handleActivityResult(getApplicationContext(), pRequestCode, pResultCode, pData, this.mCallback)) {
-                super.onActivityResult(pRequestCode, pResultCode, pData);
-            }
-
-        } else {
-
-            if (!QiPick.handleActivityResult(getApplicationContext(), pRequestCode, pResultCode, pData, this.mCallback)) {
-                super.onActivityResult(pRequestCode, pResultCode, pData);
-            }
-
+        if (!QiPick.handleActivityResult(getApplicationContext(), pRequestCode, pResultCode, pData, this.mCallback)) {
+            super.onActivityResult(pRequestCode, pResultCode, pData);
         }
+
     }
 
     @Override
@@ -165,83 +153,43 @@ public class MainActivity
 
             case R.id.btn_pick_local_jpg_webp: {
 
-                if (USE_DEPRECATED_API) {
+                @PickTriggerResult final int triggerResult;
+                triggerResult = QiPick.in(this)
+                                      .allowOnlyLocalContent(true)
+                                      .withAllowedMimeTypes(QiPick.MIME_TYPE_IMAGE_JPEG, QiPick.MIME_TYPE_IMAGE_WEBP)
+                                      .withCameraPicsDirectory(outDir)
+                                      .withRequestType(1)
+                                      .fromMultipleSources("All sources", PickSource.CAMERA, PickSource.DOCUMENTS, PickSource.GALLERY);
 
-                    QuickImagePick.allowOnlyLocalContent(this, true);
-
-                    final String[] types = {QuickImagePick.MIME_TYPE_IMAGE_JPEG, QuickImagePick.MIME_TYPE_IMAGE_WEBP};
-                    QuickImagePick.setAllowedMimeTypes(this, types);
-
-                    QuickImagePick.pickFromMultipleSources(this, 1, "All sources", PickSource.CAMERA, PickSource.DOCUMENTS, PickSource.GALLERY);
-
-                } else {
-
-                    @PickTriggerResult final int triggerResult;
-                    triggerResult = QiPick.in(this)
-                                          .allowOnlyLocalContent(true)
-                                          .withAllowedMimeTypes(QiPick.MIME_TYPE_IMAGE_JPEG, QiPick.MIME_TYPE_IMAGE_WEBP)
-                                          .withCameraPicsDirectory(outDir)
-                                          .withRequestType(1)
-                                          .fromMultipleSources("All sources", PickSource.CAMERA, PickSource.DOCUMENTS, PickSource.GALLERY);
-
-                    this.solveTriggerResult(triggerResult);
-
-                }
+                this.solveTriggerResult(triggerResult);
 
                 break;
             }
 
             case R.id.btn_pick_png_jpg_camera_docs: {
 
-                if (USE_DEPRECATED_API) {
+                @PickTriggerResult final int triggerResult;
+                triggerResult = QiPick.in(this)
+                                      .allowOnlyLocalContent(false)
+                                      .withAllowedMimeTypes(QiPick.MIME_TYPE_IMAGE_JPEG, QiPick.MIME_TYPE_IMAGE_PNG)
+                                      .withRequestType(2)
+                                      .fromDocuments(true);
 
-                    QuickImagePick.allowOnlyLocalContent(this, false);
-
-                    final String[] types = {QuickImagePick.MIME_TYPE_IMAGE_JPEG, QuickImagePick.MIME_TYPE_IMAGE_PNG};
-                    QuickImagePick.setAllowedMimeTypes(this, types);
-
-                    QuickImagePick.pickFromMultipleSources(this, 2, "Camera or Docs", PickSource.CAMERA, PickSource.DOCUMENTS);
-
-                } else {
-
-                    @PickTriggerResult final int triggerResult;
-                    triggerResult = QiPick.in(this)
-                                          .allowOnlyLocalContent(false)
-                                          .withAllowedMimeTypes(QiPick.MIME_TYPE_IMAGE_JPEG, QiPick.MIME_TYPE_IMAGE_PNG)
-                                          .withCameraPicsDirectory(outDir)
-                                          .withRequestType(2)
-                                          .fromMultipleSources("All sources", PickSource.CAMERA, PickSource.DOCUMENTS);
-
-                    this.solveTriggerResult(triggerResult);
-
-                }
+                this.solveTriggerResult(triggerResult);
 
                 break;
             }
 
             case R.id.btn_pick_cam_only: {
 
-                if (USE_DEPRECATED_API) {
+                @PickTriggerResult final int triggerResult;
+                triggerResult = QiPick.in(this)
+                                      .withAllImageMimeTypesAllowed()
+                                      .withCameraPicsDirectory(outDir)
+                                      .withRequestType(3)
+                                      .fromCamera();
 
-                    // doesn't matter for camera I guess, but doesn't hurt
-                    QuickImagePick.allowOnlyLocalContent(this, false);
-
-                    QuickImagePick.setAllImageMimeTypesAllowed(this);
-
-                    QuickImagePick.pickFromCamera(this, 3);
-
-                } else {
-
-                    @PickTriggerResult final int triggerResult;
-                    triggerResult = QiPick.in(this)
-                                          .withAllImageMimeTypesAllowed()
-                                          .withCameraPicsDirectory(outDir)
-                                          .withRequestType(3)
-                                          .fromCamera();
-
-                    this.solveTriggerResult(triggerResult);
-
-                }
+                this.solveTriggerResult(triggerResult);
 
                 break;
             }
@@ -281,6 +229,7 @@ public class MainActivity
             case PickTriggerResult.TRIGGER_PICK_OK: {
                 break;// all good, do nothing
             }
+
         }
 
     }

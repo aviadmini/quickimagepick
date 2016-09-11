@@ -313,7 +313,7 @@ public class PickRequest {
         return this.triggerPick(this.prepareGalleryIntent(), QiPick.REQ_GALLERY);
     }
 
-    @SuppressLint("NewApi")
+    @SuppressLint("InlinedApi")
     @NonNull
     private Intent prepareGalleryIntent() {
 
@@ -325,7 +325,6 @@ public class PickRequest {
         return galleryIntent;
     }
 
-
     /**
      * Launch documents pick flow
      *
@@ -333,16 +332,29 @@ public class PickRequest {
      */
     @PickTriggerResult
     public int fromDocuments() {
-        return this.triggerPick(this.prepareDocumentsIntent(), QiPick.REQ_DOCUMENTS);
+        return this.fromDocuments(false);
     }
 
-    @SuppressLint("NewApi")
+    /**
+     * Launch documents pick flow
+     *
+     * @param pAllowMultiple pass true to allow multiple images to be picked
+     * @return launch status code. One of {@link PickTriggerResult} constants
+     */
+    @PickTriggerResult
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    public int fromDocuments(final boolean pAllowMultiple) {
+        return this.triggerPick(this.prepareDocumentsIntent(pAllowMultiple), QiPick.REQ_DOCUMENTS);
+    }
+
+    @SuppressLint("InlinedApi")
     @NonNull
-    private Intent prepareDocumentsIntent() {
+    private Intent prepareDocumentsIntent(final boolean pAllowMultiple) {
 
         final Intent docsIntent = new Intent(Intent.ACTION_GET_CONTENT);
         docsIntent.addCategory(Intent.CATEGORY_OPENABLE);
         docsIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, this.mAllowOnlyLocalContent);
+        docsIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, pAllowMultiple);
 
         this.setIntentAllowedMimeTypes(docsIntent);
 
@@ -470,7 +482,7 @@ public class PickRequest {
 
         // add documents intent
         if (addDocuments) {
-            resultIntents.add(this.prepareDocumentsIntent());
+            resultIntents.add(this.prepareDocumentsIntent(false));
         }
 
         // no components are able to perform pick
@@ -479,7 +491,7 @@ public class PickRequest {
         }
 
         // create chooser intent
-        final Intent result = Intent.createChooser(new Intent(), pTitle);
+        final Intent result = Intent.createChooser(resultIntents.remove(0), pTitle);
         result.putExtra(Intent.EXTRA_INITIAL_INTENTS, resultIntents.toArray(new Parcelable[resultIntents.size()]));
 
         return this.triggerPick(result, QiPick.REQ_MULTIPLE);
@@ -542,7 +554,7 @@ public class PickRequest {
         return FileProvider.getUriForFile(this.mContext, this.mContext.getPackageName() + ".qip_file_provider", pFile);
     }
 
-    @SuppressLint("NewApi")
+    @SuppressLint("InlinedApi")
     private void setIntentAllowedMimeTypes(@NonNull final Intent pIntent) {
 
         pIntent.setType(this.mMimeType);
