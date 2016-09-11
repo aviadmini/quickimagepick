@@ -387,102 +387,80 @@ public class PickRequest {
             return PickTriggerResult.TRIGGER_PICK_ERR_NO_PICK_SOURCES;
         }
 
-        boolean addCamera = false;
-        boolean addGallery = false;
-        boolean addDocuments = false;
+        final PackageManager packageManager = this.mContext.getPackageManager();
+
+        final ArrayList<Intent> resultIntents = new ArrayList<>();
+
         for (final PickSource source : pPickSources) {
 
             switch (source) {
 
                 case CAMERA: {
 
-                    addCamera = true;
+                    final List<Intent> cameraIntents = new ArrayList<>();
+
+                    final File file = this.createCameraImageFile();
+
+                    if (file != null) {
+
+                        final Uri outputFileUri = this.createCameraImageUri(file);
+
+                        final Intent cameraIntent = this.prepareCameraIntent(outputFileUri);
+
+                        final List<ResolveInfo> camList = packageManager.queryIntentActivities(cameraIntent, 0);
+                        for (final ResolveInfo resolveInfo : camList) {
+
+                            final String packageName = resolveInfo.activityInfo.packageName;
+
+                            final Intent intent = new Intent(cameraIntent);
+                            intent.setComponent(new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name));
+                            intent.setPackage(packageName);
+                            intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
+
+                            cameraIntents.add(intent);
+
+                        }
+
+                    }
+
+                    resultIntents.addAll(cameraIntents);
 
                     break;
                 }
 
                 case GALLERY: {
 
-                    addGallery = true;
+                    final List<Intent> galleryIntents = new ArrayList<>();
+
+                    final Intent galleryIntent = this.prepareGalleryIntent();
+
+                    final List<ResolveInfo> camList = packageManager.queryIntentActivities(galleryIntent, 0);
+                    for (final ResolveInfo resolveInfo : camList) {
+
+                        final String packageName = resolveInfo.activityInfo.packageName;
+
+                        final Intent intent = new Intent(galleryIntent);
+                        intent.setComponent(new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name));
+                        intent.setPackage(packageName);
+
+                        galleryIntents.add(intent);
+
+                    }
+
+                    resultIntents.addAll(galleryIntents);
 
                     break;
                 }
 
                 case DOCUMENTS: {
 
-                    addDocuments = true;
+                    resultIntents.add(this.prepareDocumentsIntent(false));
 
                     break;
                 }
 
             }
 
-        }
-
-        final PackageManager packageManager = this.mContext.getPackageManager();
-
-        final ArrayList<Intent> resultIntents = new ArrayList<>();
-
-        // gather camera intents
-        if (addCamera) {
-
-            final List<Intent> cameraIntents = new ArrayList<>();
-
-            final File file = this.createCameraImageFile();
-
-            if (file != null) {
-
-                final Uri outputFileUri = this.createCameraImageUri(file);
-
-                final Intent cameraIntent = this.prepareCameraIntent(outputFileUri);
-
-                final List<ResolveInfo> camList = packageManager.queryIntentActivities(cameraIntent, 0);
-                for (final ResolveInfo resolveInfo : camList) {
-
-                    final String packageName = resolveInfo.activityInfo.packageName;
-
-                    final Intent intent = new Intent(cameraIntent);
-                    intent.setComponent(new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name));
-                    intent.setPackage(packageName);
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
-
-                    cameraIntents.add(intent);
-
-                }
-
-            }
-
-            resultIntents.addAll(cameraIntents);
-
-        }
-
-        // gather gallery intents
-        if (addGallery) {
-
-            final List<Intent> galleryIntents = new ArrayList<>();
-
-            final Intent galleryIntent = this.prepareGalleryIntent();
-
-            final List<ResolveInfo> camList = packageManager.queryIntentActivities(galleryIntent, 0);
-            for (final ResolveInfo resolveInfo : camList) {
-
-                final String packageName = resolveInfo.activityInfo.packageName;
-
-                final Intent intent = new Intent(galleryIntent);
-                intent.setComponent(new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name));
-                intent.setPackage(packageName);
-
-                galleryIntents.add(intent);
-
-            }
-
-            resultIntents.addAll(galleryIntents);
-
-        }
-
-        // add documents intent
-        if (addDocuments) {
-            resultIntents.add(this.prepareDocumentsIntent(false));
         }
 
         // no components are able to perform pick
@@ -491,7 +469,7 @@ public class PickRequest {
         }
 
         // create chooser intent
-        final Intent result = Intent.createChooser(resultIntents.remove(0), pTitle);
+        final Intent result = Intent.createChooser(resultIntents.remove(resultIntents.size() - 1), pTitle);
         result.putExtra(Intent.EXTRA_INITIAL_INTENTS, resultIntents.toArray(new Parcelable[resultIntents.size()]));
 
         return this.triggerPick(result, QiPick.REQ_MULTIPLE);

@@ -159,7 +159,7 @@ public class MainActivity
                                       .withAllowedMimeTypes(QiPick.MIME_TYPE_IMAGE_JPEG, QiPick.MIME_TYPE_IMAGE_WEBP)
                                       .withCameraPicsDirectory(outDir)
                                       .withRequestType(1)
-                                      .fromMultipleSources("All sources", PickSource.CAMERA, PickSource.DOCUMENTS, PickSource.GALLERY);
+                                      .fromMultipleSources("All sources", PickSource.DOCUMENTS, PickSource.CAMERA, PickSource.GALLERY);
 
                 this.solveTriggerResult(triggerResult);
 
