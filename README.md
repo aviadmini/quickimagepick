@@ -47,7 +47,7 @@ dependencies {
 }
 ```
 
-Latest release: [![GitHub release](https://img.shields.io/github/release/aviadmini/quickimagepick.svg)]()
+Latest release: [![GitHub release](https://img.shields.io/github/release/aviadmini/quickimagepick.svg?style=flat-square)]()
 
 ## Usage
 

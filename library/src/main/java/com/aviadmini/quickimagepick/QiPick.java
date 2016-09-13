@@ -12,6 +12,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -147,10 +148,20 @@ public class QiPick {
                 handleResultFromGallery(requestType, pCallback, pData);
             } else if (pRequestCode == REQ_CAMERA) {
                 handleResultFromCamera(pContext, requestType, pCallback, pData);
-            } else if (pData == null || pData.getData() == null || API_18 && pData.getClipData() == null) {
+            } else if (pData == null || pData.getData() == null && API_18 && pData.getClipData() == null) {
                 handleResultFromCamera(pContext, requestType, pCallback, pData);
             } else {
                 handleResultFromDocuments(requestType, pCallback, pData);
+            }
+
+            final String lastCameraUriString = PreferenceManager.getDefaultSharedPreferences(pContext)
+                                                                .getString(PREFS_LAST_CAMERA_URI, null);
+
+            final Uri lastCameraUri = TextUtils.isEmpty(lastCameraUriString) ? null : Uri.parse(lastCameraUriString);
+
+            if (lastCameraUri != null) {
+                pContext.getApplicationContext()
+                        .revokeUriPermission(lastCameraUri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             }
 
         } else {
@@ -167,7 +178,7 @@ public class QiPick {
 
             } else {
 
-                if (pData == null || pData.getData() == null || API_18 && pData.getClipData() == null) {
+                if (pData == null || pData.getData() == null && API_18 && pData.getClipData() == null) {
 
                     pCallback.onCancel(PickSource.CAMERA, requestType);
 
@@ -201,7 +212,6 @@ public class QiPick {
             pCallback.onError(PickSource.CAMERA, pRequestType, ERR_CAMERA_NULL_RESULT);
         } else {
             pCallback.onImagePicked(PickSource.CAMERA, pRequestType, pictureUri);
-
         }
 
     }

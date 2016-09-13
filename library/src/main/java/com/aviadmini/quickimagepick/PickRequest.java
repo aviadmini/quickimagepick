@@ -300,7 +300,19 @@ public class PickRequest {
 
         this.mLastCameraUriString = pOutputFileUri.toString();
 
-        return new Intent(MediaStore.ACTION_IMAGE_CAPTURE).putExtra(MediaStore.EXTRA_OUTPUT, pOutputFileUri);
+        final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE).putExtra(MediaStore.EXTRA_OUTPUT, pOutputFileUri);
+
+        final PackageManager packageManager = this.mContext.getPackageManager();
+
+        final List<ResolveInfo> camList = packageManager.queryIntentActivities(intent, 0);
+        for (final ResolveInfo resolveInfo : camList) {
+            // grant r/w permissions
+            this.mContext.getApplicationContext()
+                         .grantUriPermission(resolveInfo.activityInfo.packageName, pOutputFileUri,
+                                 Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        }
+
+        return intent;
     }
 
     /**
