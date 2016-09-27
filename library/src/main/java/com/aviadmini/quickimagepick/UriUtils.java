@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
+import android.text.TextUtils;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
@@ -77,7 +78,7 @@ public class UriUtils {
      */
     @WorkerThread
     public static void saveContentToFile(@NonNull final Context pContext, @NonNull final Uri pUri, @NonNull final File pFile)
-            throws RuntimeException, IOException {
+            throws IOException {
 
         FileOutputStream fos = null;
         InputStream is = null;
@@ -130,11 +131,29 @@ public class UriUtils {
     /**
      * @param pContext app {@link Context}
      * @param pUri     uri of content that will be deleted
-     * @return number of rows deleted from content provider
+     * @return number of rows deleted from content provider or 1 if deleted a file (for file:/// Uri scheme)
+     * or zero if content resolver can't resolve given Uri
      */
-    public static int deleteContent(@NonNull final Context pContext, @NonNull final Uri pUri) {
-        return pContext.getContentResolver()
-                       .delete(pUri, null, null);
+    public static int deleteContent(@NonNull final Context pContext, @NonNull final Uri pUri)
+            throws IllegalArgumentException {
+
+        if (ContentResolver.SCHEME_FILE.equals(pUri.getScheme())) {
+
+            final String path = pUri.getPath();
+
+            if (!TextUtils.isEmpty(path) && new File(path).delete()) {
+                return 1;
+            }
+
+        }
+
+        try {
+            return pContext.getContentResolver()
+                           .delete(pUri, null, null);
+        } catch (final IllegalArgumentException e) {
+            return 0;
+        }
+
     }
 
     private UriUtils() {}
