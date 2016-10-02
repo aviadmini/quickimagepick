@@ -3,6 +3,7 @@ package com.aviadmini.quickimagepick;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
@@ -10,6 +11,7 @@ import android.text.TextUtils;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -126,6 +128,25 @@ public class UriUtils {
 
         }
 
+    }
+
+    /**
+     * @param pContext app {@link Context}
+     * @param pUri     uri of content that is checked for existance
+     * @return true if content specified by given Uri exists
+     */
+    public static boolean contentExists(@NonNull final Context pContext, @NonNull final Uri pUri) {
+
+        final ContentResolver resolver = pContext.getContentResolver();
+
+        ParcelFileDescriptor pfd;
+        try {
+            pfd = resolver.openFileDescriptor(pUri, "r");
+        } catch (final FileNotFoundException | SecurityException | IllegalArgumentException | IllegalStateException e) {
+            pfd = null;
+        }
+
+        return pfd != null;
     }
 
     /**

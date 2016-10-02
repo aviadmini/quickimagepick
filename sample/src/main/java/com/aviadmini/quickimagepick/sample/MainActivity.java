@@ -46,6 +46,16 @@ public class MainActivity
 
             final Context context = getApplicationContext();
 
+            final boolean exists = UriUtils.contentExists(context, pImageUri);
+
+            if (!exists) {
+
+                Toast.makeText(context, "Image does not exist. WTF!?", Toast.LENGTH_SHORT)
+                     .show();
+
+                return;
+            }
+
             final String extension = UriUtils.getFileExtension(context, pImageUri);
             Log.i(TAG, "Picked: " + pImageUri.toString() + "\nMIME type: " + UriUtils.getMimeType(context,
                     pImageUri) + "\nFile extension: " + extension + "\nRequest type: " + pRequestType);
@@ -66,13 +76,13 @@ public class MainActivity
                 outDir.mkdirs();
 
                 // DO NOT do this on main thread. This is only for reference
-                UriUtils.saveContentToFile(getApplicationContext(), pImageUri, file);
+                UriUtils.saveContentToFile(context, pImageUri, file);
 
-                Toast.makeText(getApplicationContext(), "Save complete", Toast.LENGTH_SHORT)
+                Toast.makeText(context, "Save complete", Toast.LENGTH_SHORT)
                      .show();
 
             } catch (final IOException e) {
-                Toast.makeText(getApplicationContext(), "Save failed: " + e.getMessage(), Toast.LENGTH_SHORT)
+                Toast.makeText(context, "Save failed: " + e.getMessage(), Toast.LENGTH_SHORT)
                      .show();
             }
 
