@@ -43,11 +43,14 @@ repositories {
 }
     
 dependencies {
-    compile 'com.github.aviadmini:quickimagepick:${qip.release.version}'
+    compile ('com.github.aviadmini:quickimagepick:${qip.release.version}'){
+        // Uncomment next line if you have dependency conflict with AppCompat v7
+        // exclude group: 'com.android.support', module: 'appcompat-v7' 
+    }
 }
 ```
 
-Latest release: [![GitHub release](https://img.shields.io/github/release/aviadmini/quickimagepick.svg?style=flat-square)]()
+Latest release: [![GitHub release](https://img.shields.io/github/release/aviadmini/quickimagepick.svg?style=flat-square)]() (Use without 'v')
 
 ## Usage
 
