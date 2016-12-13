@@ -124,7 +124,8 @@ public class PickRequest {
     }
 
     /**
-     * Set a directory to which pictures taken by camera will be saved. Useful only when camera is a pick source
+     * Set a directory to which pictures taken by camera will be saved. Useful only when camera is a pick source.
+     * Directory will be created if it doesn't exist
      *
      * @param pDirPath the directory
      * @return same PickRequest object for chained calls
@@ -342,6 +343,7 @@ public class PickRequest {
      *
      * @return launch status code. One of {@link PickTriggerResult} constants
      */
+    @SuppressWarnings("NewApi")
     @PickTriggerResult
     public int fromDocuments() {
         return this.fromDocuments(false);
@@ -530,6 +532,11 @@ public class PickRequest {
 
         final File dir = this.getCameraPicsDirectory();
         if (dir == null) {
+            return null;
+        }
+
+        // Workaround for #7 https://github.com/aviadmini/quickimagepick/issues/7
+        if (!dir.exists() && !dir.mkdirs()) {
             return null;
         }
 

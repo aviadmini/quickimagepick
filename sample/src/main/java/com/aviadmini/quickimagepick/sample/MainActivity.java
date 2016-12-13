@@ -157,12 +157,13 @@ public class MainActivity
         final File outDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), QIP_DIR_NAME);
         Log.d(TAG, outDir.getAbsolutePath() + ", can write: " + outDir.canWrite());
 
-        // If directory is not writable then PickRequest trigger will return an error
+        // If cannot write then PickRequest will attempt to create it
 
         switch (pView.getId()) {
 
             case R.id.btn_pick_local_jpg_webp: {
 
+                // Code below is for reference only and will not work on API 9
                 @PickTriggerResult final int triggerResult;
                 triggerResult = QiPick.in(this)
                                       .allowOnlyLocalContent(true)
