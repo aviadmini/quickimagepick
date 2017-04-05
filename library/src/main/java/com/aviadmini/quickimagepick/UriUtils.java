@@ -152,13 +152,13 @@ public class UriUtils {
         } catch (final FileNotFoundException | SecurityException | IllegalArgumentException | IllegalStateException ignored) {
         } finally {
 
-            //            if (pfd != null) {
-            //
-            //                try {
-            //                    pfd.close();
-            //                } catch (IOException ignored) {}
-            //
-            //            }
+            if (pfd != null) {
+
+                try {
+                    pfd.close();
+                } catch (IOException ignored) {}
+
+            }
 
         }
 
