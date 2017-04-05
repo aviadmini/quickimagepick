@@ -11,6 +11,7 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 
@@ -22,10 +23,11 @@ import java.util.ArrayList;
  * <br><br>
  * Create a {@link PickRequest} using one of {@code in(*)} methods and use chained calls to set up and launch the pick request
  *
+ * @author aviadmini
  * @see <a href="https://github.com/aviadmini/quickimagepick">GitHub repo</a>
  * @since v2.0.0
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class QiPick {
 
     static final String PREFS_REQUEST_TYPE              = "qip_req_type";
@@ -78,6 +80,7 @@ public class QiPick {
      * @param pFragment Fragment to which pick result will be returned
      * @return PickRequest to set up pick request and trigger it
      */
+    @RequiresApi(Build.VERSION_CODES.HONEYCOMB)
     public static PickRequest in(@NonNull final android.app.Fragment pFragment) {
         return new PickRequest(pFragment);
     }

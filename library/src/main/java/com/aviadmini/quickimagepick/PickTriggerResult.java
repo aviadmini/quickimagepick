@@ -8,6 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * Result code for {@link PickRequest} trigger
  *
+ * @author aviadmini
  * @since v2.0.0
  */
 @IntDef({PickTriggerResult.TRIGGER_PICK_OK, PickTriggerResult.TRIGGER_PICK_ERR_NO_ACTIVITY, PickTriggerResult.TRIGGER_PICK_ERR_CAM_FILE, PickTriggerResult.TRIGGER_PICK_ERR_NO_PICK_SOURCES})

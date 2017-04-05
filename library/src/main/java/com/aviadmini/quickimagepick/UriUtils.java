@@ -19,8 +19,10 @@ import java.io.InputStream;
 /**
  * Class contains some useful methods to work with {@link Uri}. Mainly designed for image Uris returned by this library
  *
+ * @author aviadmini
  * @since v2.0.0
  */
+@SuppressWarnings("WeakerAccess")
 public class UriUtils {
 
     /**
@@ -132,21 +134,35 @@ public class UriUtils {
 
     /**
      * @param pContext app {@link Context}
-     * @param pUri     uri of content that is checked for existance
+     * @param pUri     uri of content that is checked for existence
      * @return true if content specified by given Uri exists
      */
     public static boolean contentExists(@NonNull final Context pContext, @NonNull final Uri pUri) {
 
         final ContentResolver resolver = pContext.getContentResolver();
 
-        ParcelFileDescriptor pfd;
+        ParcelFileDescriptor pfd = null;
+        boolean exists = false;
         try {
+
             pfd = resolver.openFileDescriptor(pUri, "r");
-        } catch (final FileNotFoundException | SecurityException | IllegalArgumentException | IllegalStateException e) {
-            pfd = null;
+
+            exists = true;
+
+        } catch (final FileNotFoundException | SecurityException | IllegalArgumentException | IllegalStateException ignored) {
+        } finally {
+
+            //            if (pfd != null) {
+            //
+            //                try {
+            //                    pfd.close();
+            //                } catch (IOException ignored) {}
+            //
+            //            }
+
         }
 
-        return pfd != null;
+        return exists;
     }
 
     /**

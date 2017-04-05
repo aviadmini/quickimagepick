@@ -8,6 +8,7 @@ import java.util.List;
 /**
  * Callback for {@code handleActivityResult(...)} methods
  *
+ * @author aviadmini
  * @since v2.0.0
  */
 public interface PickCallback {

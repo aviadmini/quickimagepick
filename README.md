@@ -117,14 +117,14 @@ There's a bunch of useful methods to work with `Uri` in `UriUtils`
 There's a few extension ideas that might make the library even more useful. 
 
 - v3.0 create PickResult that will encapsulate both PickRequest details and pick results
-- ability to explicitly add file picker(-s) as pick sources
+- ability to explicitly add specific file picker components as pick sources
 - tell me more ;)
 
 If your app uses this library send me market links ;)
 
 ## License
 
-    Copyright 2016 Bohdan Semeniuk
+    Copyright 2017 Bohdan Semeniuk
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

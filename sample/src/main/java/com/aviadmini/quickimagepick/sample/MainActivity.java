@@ -179,6 +179,7 @@ public class MainActivity
 
             case R.id.btn_pick_png_jpg_camera_docs: {
 
+                // Code below is for reference only and will not work on API 9
                 @PickTriggerResult final int triggerResult;
                 triggerResult = QiPick.in(this)
                                       .allowOnlyLocalContent(false)

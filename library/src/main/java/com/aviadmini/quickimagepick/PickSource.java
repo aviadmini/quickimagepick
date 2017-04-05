@@ -2,6 +2,8 @@ package com.aviadmini.quickimagepick;
 
 /**
  * Sources from which images can be picked
+ *
+ * @author aviadmini
  */
 public enum PickSource {
 

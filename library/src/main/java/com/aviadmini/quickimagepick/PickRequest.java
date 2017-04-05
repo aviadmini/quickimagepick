@@ -32,9 +32,10 @@ import java.util.Set;
 /**
  * A reusable object used to trigger pick flow.
  *
+ * @author aviadmini
  * @since v2.0.0
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class PickRequest {
 
     @NonNull
@@ -88,7 +89,6 @@ public class PickRequest {
     }
 
 
-    @SuppressLint("NewApi")
     @RequiresApi(Build.VERSION_CODES.HONEYCOMB)
     PickRequest(@NonNull final android.app.Fragment pFragment) {
 

@@ -4,7 +4,7 @@ apply plugin: 'android-apt'
 android {
 
     compileSdkVersion 25
-    buildToolsVersion "25.0.1"
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
 
@@ -40,16 +40,16 @@ dependencies {
 
     compile fileTree(include: ['*.jar'], dir: 'libs')
 
-    compile 'com.android.support:appcompat-v7:25.0.1'
+    compile 'com.android.support:appcompat-v7:25.3.1'
 
-    compile 'com.github.hotchemi:permissionsdispatcher:2.2.1'
-    apt 'com.github.hotchemi:permissionsdispatcher-processor:2.2.1'
+    compile 'com.github.hotchemi:permissionsdispatcher:2.3.2'
+    apt 'com.github.hotchemi:permissionsdispatcher-processor:2.3.2'
 
     compile 'com.github.bumptech.glide:glide:3.7.0'
 
     compile project(':library')
 
-    // compile('com.github.aviadmini:quickimagepick:2.1.6') {
+    // compile('com.github.aviadmini:quickimagepick:2.1.7') {
     //     exclude group: 'com.android.support', module: 'appcompat-v7'
     // }
 
